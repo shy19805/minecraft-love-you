@@ -38,8 +38,9 @@ public class SnowCapModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "雨雪覆盖积雪";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

@@ -25,8 +25,9 @@ public class EatFastModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "快吃";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

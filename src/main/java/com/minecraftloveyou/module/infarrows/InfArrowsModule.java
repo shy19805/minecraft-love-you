@@ -23,8 +23,9 @@ public class InfArrowsModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "所有箭配无限";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

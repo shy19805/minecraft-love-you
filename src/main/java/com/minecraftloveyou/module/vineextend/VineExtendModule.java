@@ -44,8 +44,9 @@ public class VineExtendModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "藤蔓/梯子延伸";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

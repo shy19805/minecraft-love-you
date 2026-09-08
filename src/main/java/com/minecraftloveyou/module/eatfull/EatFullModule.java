@@ -25,8 +25,9 @@ public class EatFullModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "满饱仍可吃";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

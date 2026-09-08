@@ -27,8 +27,9 @@ public class EnchantRevealModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "显示全部潜在附魔";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

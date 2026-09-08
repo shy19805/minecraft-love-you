@@ -2,12 +2,16 @@
   "schemaVersion": 1,
   "id": "minecraft_love_you",
   "version": "${version}",
-  "name": "我的世界爱你",
-  "description": "Minecraft love you：模块化体验整合，各功能互不影响、全部可配置开关（默认全开），主动功能可配快捷键。依赖：钠 + 模组菜单 + Cloth Config。",
+  "name": "我的世界爱你 · World Loves You",
+  "description": "我的世界爱你（World Loves You）：模块化体验整合。每个功能互不影响、全部可配置开关，主动功能可配快捷键。\nWorld Loves You: a modular quality-of-life mod. Every feature is independent, toggleable, and key-bindable.",
   "authors": [
     "minecraft_love_you"
   ],
-  "contact": {},
+  "contact": {
+    "homepage": "https://github.com/shy19805/minecraft-love-you",
+    "issues": "https://github.com/shy19805/minecraft-love-you/issues",
+    "sources": "https://github.com/shy19805/minecraft-love-you"
+  },
   "license": "MIT",
   "environment": "*",
   "entrypoints": {

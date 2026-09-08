@@ -63,7 +63,8 @@ public abstract class EnchantmentScreenMixin {
             List<String> offers = EnchantRevealCache.offers().get(i);
             if (offers != null && !offers.isEmpty()) {
                 texts.add(Component.empty());
-                texts.add(Component.literal("§e可能附魔（全部候选）："));
+                texts.add(Component.translatable("wly.ui.enchant_reveal.header")
+                        .withStyle(net.minecraft.ChatFormatting.YELLOW));
                 for (String s : offers) {
                     texts.add(Component.literal("§7· " + s));
                 }

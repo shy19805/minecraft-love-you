@@ -30,8 +30,9 @@ public class EztweakModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "Easy Tweak 规则集";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

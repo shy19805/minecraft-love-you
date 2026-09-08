@@ -136,13 +136,17 @@ public final class SelfTest {
             out.add("FAIL T9 ctm 玻璃纹理缺失");
         }
 
-        // T10 语言条目（trajectory/smart-tooltip 等）
-        try (var in = SelfTest.class.getClassLoader().getResourceAsStream("assets/minecraft_love_you/lang/zh_cn.json")) {
-            String s = in != null ? new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8) : "";
-            boolean ok = s.contains("key.minecraft_love_you.sort") && s.contains("key.minecraft_love_you.harvest");
+        // T10 语言文件：zh_cn 必备键 + en_us 前缀/键集对齐
+        try (var zin = SelfTest.class.getClassLoader().getResourceAsStream("assets/minecraft_love_you/lang/zh_cn.json");
+             var ein = SelfTest.class.getClassLoader().getResourceAsStream("assets/minecraft_love_you/lang/en_us.json")) {
+            String z = zin != null ? new String(zin.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8) : "";
+            String e = ein != null ? new String(ein.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8) : "";
+            boolean ok = z.contains("key.minecraft_love_you.sort") && z.contains("key.minecraft_love_you.harvest")
+                    && e.contains("\"wly.module.big-stacks\"") && e.contains("\"wly.module.anvil-master\"")
+                    && e.contains("\"wly.module.eztweak-farmland-protect\"");
             if (ok) {
                 pass++;
-                out.add("PASS T10 语言文件条目存在");
+                out.add("PASS T10 语言文件条目存在（zh 必备键 + en_us 键集对齐）");
             } else {
                 fail++;
                 out.add("FAIL T10 语言文件条目异常");

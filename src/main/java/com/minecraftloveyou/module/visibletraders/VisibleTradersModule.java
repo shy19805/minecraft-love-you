@@ -20,8 +20,9 @@ public class VisibleTradersModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "显示村民全部交易";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public boolean clientOnly() {

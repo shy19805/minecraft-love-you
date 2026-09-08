@@ -41,8 +41,9 @@ public class RulerModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "全局规则锁定";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

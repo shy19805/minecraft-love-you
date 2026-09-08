@@ -21,8 +21,9 @@ public class BigStacksModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "大堆叠（999）";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {
@@ -34,12 +35,14 @@ public class BigStacksModule implements WlyModule {
                                     var player = c.getSource().getPlayerOrException();
                                     var held = player.getMainHandItem();
                                     if (held.isEmpty()) {
-                                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal("[我的世界爱你] 先手持一个物品"));
+                                        player.sendSystemMessage(com.minecraftloveyou.core.WlyCommands.prefix()
+                                                .append(net.minecraft.network.chat.Component.translatable("wly.msg.big_stacks.need_item")));
                                         return 0;
                                     }
                                     held.setCount(com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "count"));
-                                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                                            "[我的世界爱你] 主手数量已设为 " + held.getCount() + "（上限 " + held.getMaxStackSize() + "）"));
+                                    player.sendSystemMessage(com.minecraftloveyou.core.WlyCommands.prefix()
+                                            .append(net.minecraft.network.chat.Component.translatable(
+                                                    "wly.msg.big_stacks.set_count", held.getCount(), held.getMaxStackSize())));
                                     return 1;
                                 }))));
     }

@@ -20,8 +20,9 @@ public class TradeDisplayModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "交易显示";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public boolean clientOnly() {

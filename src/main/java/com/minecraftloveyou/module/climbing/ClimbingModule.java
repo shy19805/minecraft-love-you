@@ -30,8 +30,9 @@ public class ClimbingModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "更好的攀爬";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

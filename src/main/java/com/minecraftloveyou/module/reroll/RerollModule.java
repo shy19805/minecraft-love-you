@@ -39,8 +39,9 @@ public class RerollModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "刷新附魔";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {
@@ -105,7 +106,8 @@ public class RerollModule implements WlyModule {
         }
         if (!sp.hasInfiniteMaterials()) {
             if (sp.experienceLevel < rerollCostLevels) {
-                sp.sendSystemMessage(Component.literal("[我的世界爱你] 经验不足（需 " + rerollCostLevels + " 级）"), true);
+                sp.sendSystemMessage(com.minecraftloveyou.core.WlyCommands.prefix()
+                        .append(Component.translatable("wly.msg.reroll.no_xp", rerollCostLevels)), true);
                 return;
             }
             sp.giveExperienceLevels(-rerollCostLevels);
@@ -115,6 +117,7 @@ public class RerollModule implements WlyModule {
         {
             com.minecraftloveyou.core.WlyNetBridge.rerollEnchantmentMenu(sp, menu, newSeed);
         }
-        sp.sendSystemMessage(Component.literal("[我的世界爱你] 附魔已刷新"), true);
+        sp.sendSystemMessage(com.minecraftloveyou.core.WlyCommands.prefix()
+                .append(Component.translatable("wly.msg.reroll.done")), true);
     }
 }

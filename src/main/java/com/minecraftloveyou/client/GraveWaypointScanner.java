@@ -44,7 +44,8 @@ public class GraveWaypointScanner {
                 if (!wasDead) {
                     wasDead = true;
                     XaeroCompat.addGraveWaypoint(
-                            (int) Math.floor(lastAliveX), (int) Math.floor(lastAliveY), (int) Math.floor(lastAliveZ), "墓碑");
+                            (int) Math.floor(lastAliveX), (int) Math.floor(lastAliveY), (int) Math.floor(lastAliveZ),
+                            net.minecraft.network.chat.Component.translatable("wly.ui.waypoint.grave").getString());
                 }
                 return;
             }
@@ -61,7 +62,8 @@ public class GraveWaypointScanner {
                             String key = BuiltInRegistries.BLOCK.getKey(GravesModule.GRAVE_BLOCK)
                                     + ":" + p.getX() + "," + p.getY() + "," + p.getZ() + ":" + client.level.dimension().identifier();
                             if (KNOWN.add(key)) {
-                                boolean ok = XaeroCompat.addGraveWaypoint(p.getX(), p.getY(), p.getZ(), "墓碑");
+                                boolean ok = XaeroCompat.addGraveWaypoint(p.getX(), p.getY(), p.getZ(),
+                                    net.minecraft.network.chat.Component.translatable("wly.ui.waypoint.grave").getString());
                                 if (ok) {
                                     WorldLovesYouMod.LOGGER.info("[世界爱你] 已为墓碑 {} 添加 Xaero 路点", p.toShortString());
                                 } else {

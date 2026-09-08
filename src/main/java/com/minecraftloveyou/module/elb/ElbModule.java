@@ -20,8 +20,9 @@ public class ElbModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "附魔等级上限突破";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

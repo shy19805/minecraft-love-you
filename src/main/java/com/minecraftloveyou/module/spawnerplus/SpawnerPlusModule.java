@@ -40,8 +40,9 @@ public class SpawnerPlusModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "刷怪笼增强";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

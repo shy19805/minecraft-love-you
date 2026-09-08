@@ -40,8 +40,9 @@ public class TameSafetyModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "驯服生物避险";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

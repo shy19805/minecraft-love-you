@@ -30,8 +30,9 @@ public class SmartTooltipModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "智能提示";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public boolean clientOnly() {
@@ -52,18 +53,22 @@ public class SmartTooltipModule implements WlyModule {
             if (stack.isDamageableItem() && stack.getMaxDamage() > 0) {
                 int left = stack.getMaxDamage() - stack.getDamageValue();
                 float pct = (float) left / stack.getMaxDamage();
-                String color = pct > 0.5f ? "§a" : (pct > 0.25f ? "§e" : "§c");
-                lines.add(Component.literal(String.format("%s耐久 %d / %d（%.0f%%）", color, left, stack.getMaxDamage(), pct * 100)));
+                net.minecraft.ChatFormatting color = pct > 0.5f ? net.minecraft.ChatFormatting.GREEN
+                        : (pct > 0.25f ? net.minecraft.ChatFormatting.YELLOW : net.minecraft.ChatFormatting.RED);
+                lines.add(Component.translatable("wly.ui.smart.durability", left, stack.getMaxDamage(), Math.round(pct * 100))
+                        .withStyle(color));
             }
             // 堆叠上限（>1 时）
             int max = stack.getMaxStackSize();
             if (max > 1) {
-                lines.add(Component.literal(String.format("§7堆叠 %d/%d", stack.getCount(), max)));
+                lines.add(Component.translatable("wly.ui.smart.stack", stack.getCount(), max)
+                        .withStyle(net.minecraft.ChatFormatting.GRAY));
             }
             // 物品 id（高级 tooltip 常显）
             if (tooltipType.isAdvanced()) {
                 var key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
-                lines.add(Component.literal("§8id: " + key));
+                lines.add(Component.translatable("wly.ui.smart.item_id", key)
+                        .withStyle(net.minecraft.ChatFormatting.DARK_GRAY));
             }
         });
     }

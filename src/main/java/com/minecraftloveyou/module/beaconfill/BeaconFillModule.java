@@ -46,8 +46,9 @@ public class BeaconFillModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "更好的信标放置";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

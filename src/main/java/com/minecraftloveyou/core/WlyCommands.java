@@ -1,8 +1,10 @@
 package com.minecraftloveyou.core;
 
 import com.mojang.brigadier.CommandDispatcher;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 
 import static net.minecraft.commands.Commands.literal;
 
@@ -10,6 +12,11 @@ import static net.minecraft.commands.Commands.literal;
 public class WlyCommands {
 
     private WlyCommands() {
+    }
+
+    /** 消息统一前缀：[模组名]（模组名走语言键，跟随客户端语言）。 */
+    public static MutableComponent prefix() {
+        return Component.literal("[").append(Component.translatable("wly.modmenu.title")).append(Component.literal("] "));
     }
 
     /** client=true 时额外注册 /wly keys list（仅客户端可用）。 */
@@ -24,12 +31,17 @@ public class WlyCommands {
     }
 
     private static int listModules(CommandSourceStack src) {
-        var sb = new StringBuilder("[我的世界爱你] 模块状态：\n");
+        src.sendSuccess(() -> prefix().append(Component.translatable("wly.command.header")), false);
         for (var m : ModuleManager.modules().values()) {
-            sb.append(" - ").append(m.displayName()).append("（").append(m.id()).append("）：")
-              .append(ModuleManager.enabled(m.id()) ? "§a启用" : "§c禁用").append("\n");
+            final boolean on = ModuleManager.enabled(m.id());
+            final String id = m.id();
+            final String key = m.displayName();
+            src.sendSuccess(() -> Component.literal(" - ")
+                    .append(Component.translatable(key))
+                    .append(Component.literal(" (" + id + "): "))
+                    .append(Component.translatable(on ? "wly.command.on" : "wly.command.off")
+                            .withStyle(on ? ChatFormatting.GREEN : ChatFormatting.RED)), false);
         }
-        src.sendSuccess(() -> Component.literal(sb.toString()), false);
         return 1;
     }
 }

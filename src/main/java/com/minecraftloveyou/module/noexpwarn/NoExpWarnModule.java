@@ -20,8 +20,9 @@ public class NoExpWarnModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "去实验设置警告";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public boolean clientOnly() {

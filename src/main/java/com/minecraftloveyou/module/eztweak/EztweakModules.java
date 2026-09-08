@@ -20,19 +20,17 @@ public final class EztweakModules {
     }
 
     public static void registerAll() {
-        reg(new Base(RULE_ENDERMAN, "末影人不可搬方块"));
-        reg(new Base(RULE_CREEPER, "苦力怕不爆炸"));
-        reg(new Base(RULE_GHAST, "恶魂火球不破坏方块"));
-        reg(new Base(RULE_FARMLAND, "耕地防踩踏"));
+        reg(new Base(RULE_ENDERMAN));
+        reg(new Base(RULE_CREEPER));
+        reg(new Base(RULE_GHAST));
+        reg(new Base(RULE_FARMLAND));
     }
 
     private static class Base implements WlyModule {
         private final String id;
-        private final String name;
 
-        Base(String id, String name) {
+        Base(String id) {
             this.id = id;
-            this.name = name;
         }
 
         @Override
@@ -42,7 +40,7 @@ public final class EztweakModules {
 
         @Override
         public String displayName() {
-            return name;
+            return "wly.module." + id;
         }
 
         @Override

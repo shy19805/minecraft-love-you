@@ -41,8 +41,9 @@ public class MendHoldModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "更好的经验修补";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

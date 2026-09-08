@@ -25,8 +25,9 @@ public class EnchantTweakModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "冲突附魔共存";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

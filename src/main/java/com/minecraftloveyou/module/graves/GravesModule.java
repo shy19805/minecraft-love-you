@@ -41,8 +41,9 @@ public class GravesModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "墓碑";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

@@ -54,7 +54,7 @@ public class GraveBlockEntity extends BaseContainerBlockEntity {
 
     @Override
     protected Component getDefaultName() {
-        return Component.literal("墓碑");
+        return Component.translatable("wly.ui.grave.name");
     }
 
     @Override

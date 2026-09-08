@@ -23,8 +23,9 @@ public class FriendlyFireModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "友军保护";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

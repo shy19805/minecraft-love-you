@@ -24,8 +24,9 @@ public class CtmModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "连接纹理/玻璃板修复";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

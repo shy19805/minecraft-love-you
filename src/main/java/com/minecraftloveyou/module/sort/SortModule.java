@@ -25,8 +25,9 @@ public class SortModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "一键整理";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

@@ -35,8 +35,9 @@ public class AnvilMasterModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "铁砧无上限与清附魔";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {
@@ -55,19 +56,22 @@ public class AnvilMasterModule implements WlyModule {
         }
         ItemStack stack = player.getMainHandItem();
         if (stack.isEmpty()) {
-            player.sendSystemMessage(Component.literal("[我的世界爱你] 手持空物品"), true);
+            player.sendSystemMessage(com.minecraftloveyou.core.WlyCommands.prefix()
+                    .append(Component.translatable("wly.msg.anvil_master.empty_hand")), true);
             return 0;
         }
         var ench = stack.get(DataComponents.ENCHANTMENTS);
         if (ench == null || ench.isEmpty()) {
-            player.sendSystemMessage(Component.literal("[我的世界爱你] 手持物品没有附魔"), true);
+            player.sendSystemMessage(com.minecraftloveyou.core.WlyCommands.prefix()
+                    .append(Component.translatable("wly.msg.anvil_master.no_enchant")), true);
             return 0;
         }
         var kept = new net.minecraft.world.item.enchantment.ItemEnchantments.Mutable(ench);
         kept.removeIf(h -> includeCurse || !h.is(EnchantmentTags.CURSE));
         stack.set(DataComponents.ENCHANTMENTS, kept.toImmutable());
         stack.set(DataComponents.REPAIR_COST, 0);
-        player.sendSystemMessage(Component.literal("[我的世界爱你] 已清除附魔"), true);
+        player.sendSystemMessage(com.minecraftloveyou.core.WlyCommands.prefix()
+                .append(Component.translatable("wly.msg.anvil_master.cleared")), true);
         return 1;
     }
 }

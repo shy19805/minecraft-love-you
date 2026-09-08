@@ -37,8 +37,9 @@ public class ClickthroughModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "点击穿透";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

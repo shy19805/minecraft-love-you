@@ -39,11 +39,11 @@ public abstract class EnchantmentScreenButtonMixin {
         int y = topPos + 160;
         boolean hover = mouseX >= x && mouseX < x + 60 && mouseY >= y && mouseY < y + 16;
         var text = hover ? 0xFFFFE08A : 0xFFE0C060;
-        var label = Component.literal("⟳ 刷新附魔");
+        var label = Component.translatable("wly.ui.reroll.button");
         graphics.text(self.getFont(), label, x + 2, y + 4, text, true);
         if (hover) {
             graphics.setComponentTooltipForNextFrame(self.getFont(),
-                    List.of(Component.literal("点击或按设置的“刷新附魔”键：消耗经验重掷附魔选项")), mouseX, mouseY);
+                    List.of(Component.translatable("wly.ui.reroll.tooltip")), mouseX, mouseY);
         }
     }
 

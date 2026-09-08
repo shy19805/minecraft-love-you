@@ -24,8 +24,9 @@ public class RendiModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "移除受击无敌帧";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

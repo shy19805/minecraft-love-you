@@ -24,8 +24,9 @@ public class NonConflictKeysModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "全键无冲";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public boolean clientOnly() {

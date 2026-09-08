@@ -22,7 +22,7 @@ public class DemoModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "示例模块";
+        return "wly.module.demo";
     }
 
     @Override

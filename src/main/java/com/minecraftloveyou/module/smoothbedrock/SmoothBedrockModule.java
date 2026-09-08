@@ -26,8 +26,9 @@ public class SmoothBedrockModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "平滑基岩";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public boolean enabledByDefault() {

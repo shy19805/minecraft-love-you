@@ -29,8 +29,9 @@ public class EmeraldLureModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "绿宝石吸引村民";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

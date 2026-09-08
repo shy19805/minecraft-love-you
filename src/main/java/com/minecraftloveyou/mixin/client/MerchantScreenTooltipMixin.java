@@ -36,16 +36,26 @@ public abstract class MerchantScreenTooltipMixin {
         var offer = offers.get(offerIndex);
         var texts = new ArrayList<Component>();
         var sell = offer.getResult();
-        texts.add(Component.literal("§e获得：§f" + sell.getCount() + "× " + sell.getHoverName().getString()));
+        texts.add(Component.translatable("wly.ui.trade.gains", sell.getCount(), sell.getHoverName())
+                .withStyle(net.minecraft.ChatFormatting.YELLOW));
         var ench = sell.get(net.minecraft.core.component.DataComponents.STORED_ENCHANTMENTS);
         if (ench != null) {
             ench.entrySet().forEach(e ->
-                    texts.add(Component.literal("§7  · " + net.minecraft.world.item.enchantment.Enchantment
-                            .getFullname(e.getKey(), e.getIntValue()).getString())));
+                    texts.add(Component.translatable("wly.ui.trade.enchant",
+                            net.minecraft.world.item.enchantment.Enchantment.getFullname(e.getKey(), e.getIntValue()))
+                            .withStyle(net.minecraft.ChatFormatting.GRAY)));
         }
-        texts.add(Component.literal("§e需要：§f" + offer.getCostA().getCount() + "× " + offer.getCostA().getHoverName().getString()
-                + (offer.getCostB().isEmpty() ? "" : " + " + offer.getCostB().getCount() + "× " + offer.getCostB().getHoverName().getString())));
-        texts.add(Component.literal(offer.isOutOfStock() ? "§c（缺货）" : "§a（可交易）"));
+        var cost = net.minecraft.network.chat.Component.literal(offer.getCostA().getCount() + "× ")
+                .append(offer.getCostA().getHoverName());
+        if (!offer.getCostB().isEmpty()) {
+            cost = cost.append(net.minecraft.network.chat.Component.literal(" + " + offer.getCostB().getCount() + "× "))
+                    .append(offer.getCostB().getHoverName());
+        }
+        texts.add(Component.translatable("wly.ui.trade.costs", cost)
+                .withStyle(net.minecraft.ChatFormatting.YELLOW));
+        texts.add(offer.isOutOfStock()
+                ? Component.translatable("wly.ui.trade.out_of_stock").withStyle(net.minecraft.ChatFormatting.RED)
+                : Component.translatable("wly.ui.trade.available").withStyle(net.minecraft.ChatFormatting.GREEN));
         graphics.setComponentTooltipForNextFrame(self.getFont(), texts, xm, ym);
     }
 }

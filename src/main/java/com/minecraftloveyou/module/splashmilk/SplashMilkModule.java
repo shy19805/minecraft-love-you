@@ -60,8 +60,9 @@ public class SplashMilkModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "喷溅牛奶";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

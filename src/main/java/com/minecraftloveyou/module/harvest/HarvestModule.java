@@ -63,8 +63,9 @@ public class HarvestModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "右键收获并补种";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

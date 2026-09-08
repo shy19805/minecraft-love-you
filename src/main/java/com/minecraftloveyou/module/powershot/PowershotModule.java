@@ -30,8 +30,9 @@ public class PowershotModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "力量射击";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

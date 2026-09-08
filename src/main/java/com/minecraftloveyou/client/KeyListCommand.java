@@ -1,5 +1,6 @@
 package com.minecraftloveyou.client;
 
+import com.minecraftloveyou.core.WlyCommands;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 
@@ -10,12 +11,12 @@ public class KeyListCommand {
     }
 
     public static int list(CommandSourceStack src) {
-        var sb = new StringBuilder("[世界爱你] 键位：\n");
+        src.sendSuccess(() -> WlyCommands.prefix().append(Component.translatable("wly.command.keys.header")), false);
         for (var e : WlyKeys.all().entrySet()) {
-            sb.append(" - ").append(e.getKey()).append("：")
-              .append(e.getValue().getTranslatedKeyMessage().getString()).append("\n");
+            final String id = e.getKey();
+            final String key = e.getValue().getTranslatedKeyMessage().getString();
+            src.sendSuccess(() -> Component.literal(" - ").append(id).append(Component.literal(": ")).append(key), false);
         }
-        src.sendSuccess(() -> Component.literal(sb.toString()), false);
         return 1;
     }
 }

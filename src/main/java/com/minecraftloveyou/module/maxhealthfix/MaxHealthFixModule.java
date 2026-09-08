@@ -33,8 +33,9 @@ public class MaxHealthFixModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "最大生命修复";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {

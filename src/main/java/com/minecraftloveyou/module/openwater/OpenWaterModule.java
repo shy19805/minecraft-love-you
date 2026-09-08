@@ -23,8 +23,9 @@ public class OpenWaterModule implements WlyModule {
 
     @Override
     public String displayName() {
-        return "始终开放水域";
+        return "wly.module." + ID;
     }
+    
 
     @Override
     public void init(ModuleContext ctx) {
