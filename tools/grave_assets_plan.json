@@ -1,0 +1,31 @@
+{
+  "blockstates": {
+    "minecraft_love_you:grave": {
+      "variants": {
+        "": { "model": "minecraft_love_you:block/grave" }
+      }
+    }
+  },
+  "models": {
+    "block/grave": {
+      "parent": "minecraft:block/cube_all",
+      "textures": {
+        "all": "minecraft_love_you:block/grave"
+      }
+    },
+    "item/grave": {
+      "parent": "minecraft_love_you:block/grave"
+    }
+  },
+  "items": {
+    "minecraft_love_you:grave": {
+      "model": {
+        "type": "minecraft:model",
+        "model": "minecraft_love_you:item/grave"
+      }
+    }
+  },
+  "textures": {
+    "minecraft_love_you:block/grave": "16x16 程序化生成（工具脚本产出）"
+  }
+}

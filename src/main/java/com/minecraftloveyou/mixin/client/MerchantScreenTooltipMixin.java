@@ -1,0 +1,51 @@
+package com.minecraftloveyou.mixin.client;
+
+import com.minecraftloveyou.core.WlyModule;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.MerchantScreen;
+import net.minecraft.network.chat.Component;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.ArrayList;
+
+/** 交易显示：hover 交易按钮 → 追加完整摘要（挂 private 内部类，用字符串 target）。 */
+@Mixin(targets = "net.minecraft.client.gui.screens.inventory.MerchantScreen$TradeOfferButton")
+public abstract class MerchantScreenTooltipMixin {
+
+    @Shadow(remap = false)
+    public int index;
+
+    @Inject(method = "extractToolTip", at = @At("TAIL"))
+    private void wly$tradeDetails(net.minecraft.client.gui.GuiGraphicsExtractor graphics, int xm, int ym, CallbackInfo ci) {
+        if (!WlyModule.on("trade-display")) {
+            return;
+        }
+        if (!(Minecraft.getInstance().gui.screen() instanceof MerchantScreen self)) {
+            return;
+        }
+        var offers = self.getMenu().getOffers();
+        int scrollOff = ((com.minecraftloveyou.mixin.client.MerchantScreenScrollAccessor) self).minecraftloveyou$getScrollOff();
+        int offerIndex = this.index + scrollOff;
+        if (offerIndex < 0 || offerIndex >= offers.size()) {
+            return;
+        }
+        var offer = offers.get(offerIndex);
+        var texts = new ArrayList<Component>();
+        var sell = offer.getResult();
+        texts.add(Component.literal("§e获得：§f" + sell.getCount() + "× " + sell.getHoverName().getString()));
+        var ench = sell.get(net.minecraft.core.component.DataComponents.STORED_ENCHANTMENTS);
+        if (ench != null) {
+            ench.entrySet().forEach(e ->
+                    texts.add(Component.literal("§7  · " + net.minecraft.world.item.enchantment.Enchantment
+                            .getFullname(e.getKey(), e.getIntValue()).getString())));
+        }
+        texts.add(Component.literal("§e需要：§f" + offer.getCostA().getCount() + "× " + offer.getCostA().getHoverName().getString()
+                + (offer.getCostB().isEmpty() ? "" : " + " + offer.getCostB().getCount() + "× " + offer.getCostB().getHoverName().getString())));
+        texts.add(Component.literal(offer.isOutOfStock() ? "§c（缺货）" : "§a（可交易）"));
+        graphics.setComponentTooltipForNextFrame(self.getFont(), texts, xm, ym);
+    }
+}

@@ -1,0 +1,11 @@
+{
+  "block.minecraft_love_you.grave": "墓碑",
+  "item.minecraft_love_you.splash_milk": "奶瓶",
+  "key.minecraft_love_you.harvest": "作物连锁（按住触发）",
+  "key.category.minecraft_love_you.world_loves_you": "我的世界爱你",
+  "wly.modmenu.title": "我的世界爱你",
+  "wly.module.demo": "示例模块",
+  "category.minecraft_love_you": "我的世界爱你",
+  "key.minecraft_love_you.sort": "一键整理",
+  "key.minecraft_love_you.reroll": "刷新附魔"
+}

@@ -1,0 +1,1053 @@
+{
+  "texture_size": [
+    64,
+    64
+  ],
+  "textures": {
+    "particle": "minecraft_love_you:block/grave_base",
+    "stone": "minecraft_love_you:block/grave_base",
+    "front": "minecraft_love_you:block/grave_front",
+    "side": "minecraft_love_you:block/grave_side",
+    "top": "minecraft_love_you:block/grave_top",
+    "incense": "minecraft_love_you:block/incense",
+    "back": "minecraft_love_you:block/grave_back",
+    "roof": "minecraft_love_you:block/grave_roof",
+    "smoke": "minecraft_love_you:block/smoke"
+  },
+  "elements": [
+    {
+      "name": "base_lower",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        3,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#stone",
+          "cullface": "north"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#stone",
+          "cullface": "south"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#stone",
+          "cullface": "east"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#stone",
+          "cullface": "west"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#stone",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "base_upper",
+      "from": [
+        0,
+        3,
+        0
+      ],
+      "to": [
+        16,
+        6,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#stone",
+          "cullface": "north"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#stone",
+          "cullface": "south"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#stone",
+          "cullface": "east"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#stone",
+          "cullface": "west"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "offering_table",
+      "from": [
+        5,
+        6,
+        10
+      ],
+      "to": [
+        11,
+        8,
+        14
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#stone"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#stone"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#stone"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#stone"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "incense_body",
+      "from": [
+        7,
+        9.5,
+        11
+      ],
+      "to": [
+        10,
+        12.5,
+        13
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.0,
+            4.0,
+            12.5,
+            13.0
+          ],
+          "texture": "#incense"
+        },
+        "south": {
+          "uv": [
+            3.0,
+            4.0,
+            12.5,
+            13.0
+          ],
+          "texture": "#incense"
+        },
+        "east": {
+          "uv": [
+            3.0,
+            4.0,
+            12.5,
+            13.0
+          ],
+          "texture": "#incense"
+        },
+        "west": {
+          "uv": [
+            3.0,
+            4.0,
+            12.5,
+            13.0
+          ],
+          "texture": "#incense"
+        },
+        "up": {
+          "uv": [
+            6.0,
+            6.0,
+            9.5,
+            7.5
+          ],
+          "texture": "#incense"
+        }
+      }
+    },
+    {
+      "name": "incense_leg1",
+      "from": [
+        7.3,
+        8,
+        11.2
+      ],
+      "to": [
+        8.2,
+        9.5,
+        12.1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.5,
+            12.5,
+            5.5,
+            14.0
+          ],
+          "texture": "#incense"
+        },
+        "south": {
+          "uv": [
+            3.5,
+            12.5,
+            5.5,
+            14.0
+          ],
+          "texture": "#incense"
+        },
+        "east": {
+          "uv": [
+            3.5,
+            12.5,
+            5.5,
+            14.0
+          ],
+          "texture": "#incense"
+        },
+        "west": {
+          "uv": [
+            3.5,
+            12.5,
+            5.5,
+            14.0
+          ],
+          "texture": "#incense"
+        }
+      }
+    },
+    {
+      "name": "incense_leg2",
+      "from": [
+        8.8,
+        8,
+        11.2
+      ],
+      "to": [
+        9.7,
+        9.5,
+        12.1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.5,
+            12.5,
+            5.5,
+            14.0
+          ],
+          "texture": "#incense"
+        },
+        "south": {
+          "uv": [
+            3.5,
+            12.5,
+            5.5,
+            14.0
+          ],
+          "texture": "#incense"
+        },
+        "east": {
+          "uv": [
+            3.5,
+            12.5,
+            5.5,
+            14.0
+          ],
+          "texture": "#incense"
+        },
+        "west": {
+          "uv": [
+            3.5,
+            12.5,
+            5.5,
+            14.0
+          ],
+          "texture": "#incense"
+        }
+      }
+    },
+    {
+      "name": "stele_pillar_left",
+      "from": [
+        2,
+        6,
+        4
+      ],
+      "to": [
+        3.9,
+        26,
+        6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.5,
+            0.0,
+            16.0,
+            12.5
+          ],
+          "texture": "#side"
+        },
+        "south": {
+          "uv": [
+            2.5,
+            0.0,
+            16.0,
+            12.5
+          ],
+          "texture": "#side"
+        },
+        "east": {
+          "uv": [
+            2.5,
+            0.0,
+            16.0,
+            12.5
+          ],
+          "texture": "#side"
+        },
+        "west": {
+          "uv": [
+            2.5,
+            0.0,
+            16.0,
+            12.5
+          ],
+          "texture": "#side"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "stele_pillar_right",
+      "from": [
+        12.1,
+        6,
+        4
+      ],
+      "to": [
+        14,
+        26,
+        6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.5,
+            0.0,
+            16.0,
+            12.5
+          ],
+          "texture": "#side"
+        },
+        "south": {
+          "uv": [
+            2.5,
+            0.0,
+            16.0,
+            12.5
+          ],
+          "texture": "#side"
+        },
+        "east": {
+          "uv": [
+            2.5,
+            0.0,
+            16.0,
+            12.5
+          ],
+          "texture": "#side"
+        },
+        "west": {
+          "uv": [
+            2.5,
+            0.0,
+            16.0,
+            12.5
+          ],
+          "texture": "#side"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "stele_body",
+      "from": [
+        4,
+        6,
+        3
+      ],
+      "to": [
+        12,
+        26,
+        7
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.5,
+            3.0,
+            12.25,
+            12.25
+          ],
+          "texture": "#front"
+        },
+        "south": {
+          "uv": [
+            3.5,
+            3.0,
+            12.25,
+            12.25
+          ],
+          "texture": "#back"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            3.0,
+            2.5,
+            12.5
+          ],
+          "texture": "#side"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            3.0,
+            2.5,
+            12.5
+          ],
+          "texture": "#side"
+        },
+        "up": {
+          "uv": [
+            3.5,
+            2.5,
+            12.5,
+            13.5
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "roof_eave",
+      "from": [
+        2.5,
+        26,
+        2
+      ],
+      "to": [
+        13.5,
+        27,
+        8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            4.0
+          ],
+          "texture": "#roof"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            4.0
+          ],
+          "texture": "#roof"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            4.0
+          ],
+          "texture": "#roof"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            4.0
+          ],
+          "texture": "#roof"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            4.0,
+            16.0,
+            10.0
+          ],
+          "texture": "#roof"
+        },
+        "down": {
+          "uv": [
+            0.0,
+            10.0,
+            16.0,
+            14.0
+          ],
+          "texture": "#roof"
+        }
+      }
+    },
+    {
+      "name": "roof_upper",
+      "from": [
+        4,
+        27,
+        3
+      ],
+      "to": [
+        12,
+        28,
+        7
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            4.0,
+            16.0,
+            6.0
+          ],
+          "texture": "#roof"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            4.0,
+            16.0,
+            6.0
+          ],
+          "texture": "#roof"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            4.0
+          ],
+          "texture": "#roof"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            4.0
+          ],
+          "texture": "#roof"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            6.0,
+            16.0,
+            10.0
+          ],
+          "texture": "#roof"
+        }
+      }
+    },
+    {
+      "name": "roof_ridge",
+      "from": [
+        5,
+        28,
+        4
+      ],
+      "to": [
+        11,
+        28.8,
+        6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            10.0,
+            16.0,
+            12.0
+          ],
+          "texture": "#roof"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            10.0,
+            16.0,
+            12.0
+          ],
+          "texture": "#roof"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            4.0
+          ],
+          "texture": "#roof"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            4.0
+          ],
+          "texture": "#roof"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            12.0,
+            16.0,
+            15.0
+          ],
+          "texture": "#roof"
+        }
+      }
+    },
+    {
+      "name": "eave_tip_left",
+      "from": [
+        1,
+        26.9,
+        3.5
+      ],
+      "to": [
+        2.5,
+        28,
+        6.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            5.0
+          ],
+          "texture": "#roof"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            5.0
+          ],
+          "texture": "#roof"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            5.0
+          ],
+          "texture": "#roof"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            5.0
+          ],
+          "texture": "#roof"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            4.0,
+            4.0,
+            8.0
+          ],
+          "texture": "#roof"
+        }
+      }
+    },
+    {
+      "name": "eave_tip_right",
+      "from": [
+        13.5,
+        26.9,
+        3.5
+      ],
+      "to": [
+        15,
+        28,
+        6.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            5.0
+          ],
+          "texture": "#roof"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            5.0
+          ],
+          "texture": "#roof"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            5.0
+          ],
+          "texture": "#roof"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            5.0
+          ],
+          "texture": "#roof"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            4.0,
+            4.0,
+            8.0
+          ],
+          "texture": "#roof"
+        }
+      }
+    },
+    {
+      "name": "smoke_low",
+      "from": [
+        7.2,
+        13,
+        11.7
+      ],
+      "to": [
+        8.2,
+        14.6,
+        12.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#smoke"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#smoke"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#smoke"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#smoke"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#smoke"
+        },
+        "down": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#smoke"
+        }
+      }
+    },
+    {
+      "name": "smoke_high",
+      "from": [
+        8.6,
+        14.9,
+        11.5
+      ],
+      "to": [
+        9.3,
+        15.9,
+        12.3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#smoke"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#smoke"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#smoke"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#smoke"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#smoke"
+        },
+        "down": {
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ],
+          "texture": "#smoke"
+        }
+      }
+    }
+  ],
+  "display": {
+    "ground": {
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    "head": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        -12.4,
+        -8.4
+      ],
+      "scale": [
+        1.55,
+        1.55,
+        1.55
+      ]
+    },
+    "gui": {
+      "rotation": [
+        22.5,
+        -35,
+        0
+      ],
+      "translation": [
+        0,
+        2,
+        0
+      ],
+      "scale": [
+        0.85,
+        0.85,
+        0.85
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        90,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  "shade": true
+}
