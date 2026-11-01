@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** 绂佽嫤鍔涙�曠垎鐐革細explodeCreeper 鐩存帴鍙栨秷锛堟棤浼ゅ�炽�佹棤鐮村潖銆佹棤闊虫晥鐖嗙偢锛夈�?*/
+/** 苦力怕不爆炸：explodeCreeper 直接取消（无伤害、无破坏、无音效）。 */
 @Mixin(Creeper.class)
 public abstract class CreeperExplodeMixin {
 

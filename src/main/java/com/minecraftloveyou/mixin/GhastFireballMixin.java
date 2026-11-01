@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-/** 鎭堕瓊鐏�鐞冧笉鐮村潖鏂瑰潡锛氱垎鐐镐氦浜掔�?MOB 鏀逛负 NONE锛堜繚鐣欏疄浣撲激瀹筹級銆?*/
+/** 恶魂火球不破坏方块：爆炸交互由 MOB 改为 NONE（保留实体伤害）。 */
 @Mixin(LargeFireball.class)
 public abstract class GhastFireballMixin {
 

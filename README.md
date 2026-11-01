@@ -149,6 +149,17 @@ python tools/mixin_audit.py
 
 ## 📜 版本历史 / Changelog
 
+### v1.2.11（2026）
+
+- 🔧 **修复「村民缺货交易仍灰显」**（`visible-traders` 实际不生效）：原 mixin 写的是
+  `@Redirect(method = "*", require = 0, ...)` —— 选择器不被接受或方法改名时注入**静默失败**，
+  功能看起来「装了没反应」。现改为点名三个真实调用点
+  （`extractBackground` / `extractContents` / `extractButtonArrows`，26.1.2 与 26.2 签名已逐个核对）并加 `require = 1`。
+- 🔧 **`eztweak-enderman-grief` 的 `require` 由 0 提到 1**：`EnderMan$EndermanTakeBlockGoal#canUse` 两版都存在，
+  注入失配应当场报错而不是静默失效。
+- 🧹 清理 4 个 mixin 里被错误编码写坏的注释（乱码）；文件内容与行为不变。
+- 注入点审计 **69 项 HIGH 0 / MED 0**（26.1.2 与 26.2 各一遍，新增的 3 个 Redirect 全部命中）。
+
 ### v1.2.10（2026）
 
 - 🎯 **弹道预测重做**（反馈：粒子效果差、预测不准、不与力量射击配合）：

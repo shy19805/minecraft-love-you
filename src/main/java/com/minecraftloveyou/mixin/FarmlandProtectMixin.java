@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** 闃茶�曞湴韪╄笍锛歠allOn 鐩存帴杩斿洖锛堣�曞湴姘镐笉鍙樻偿鍦燂級銆?*/
+/** 耕地防踩踏：生物落地前把 farmland 的踩踏判定拦掉。 */
 @Mixin(FarmlandBlock.class)
 public abstract class FarmlandProtectMixin {
 

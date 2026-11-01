@@ -47,7 +47,7 @@
 
 - 日志：`logs/latest.log`、崩溃：`crash-reports/`
 - 用户上传的错误报告 zip 里有完整 latest.log（文件名 GBK 乱码属正常，解压后看 latest.log）。
-- 部署文件名：`我的世界爱你-1.2.10.jar`（源：`build/libs/minecraft_love_you-1.2.10.jar`，MD5 `703fe88bdb2a9f9b1819721af6f44563`）。
+- 部署文件名：`我的世界爱你-1.2.11.jar`（源：`build/libs/minecraft_love_you-1.2.11.jar`，MD5 `f4af2562621c5de23c6d87ec58237edf`）。
   - **游戏运行中无法改名/删除 mods 里已加载的 jar**（Windows 文件占用，`mv` 报 `Device or resource busy`），
     但**可以覆盖写入**。所以「旧 jar 停用」这一步必须等玩家关掉游戏再做，否则会同时存在两个同 mod id 的 jar。
 - 换版本号时**务必把旧 jar 改名停用**（如 `.jar.disabled`），否则两个同名 mod 会同时加载。

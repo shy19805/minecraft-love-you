@@ -6,11 +6,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/** 绂佹湯褰变汉鎼�鏂瑰潡锛歱rivate 鍐呴儴绫荤敤瀛楃�︿�?targets銆?*/
+/** 末影人不可搬方块：private 内部类用字符串 targets 指定。 */
 @Mixin(targets = "net.minecraft.world.entity.monster.EnderMan$EndermanTakeBlockGoal")
 public abstract class EndermanTakeBlockMixin {
 
-    @Inject(method = "canUse", at = @At("HEAD"), cancellable = true, require = 0)
+    @Inject(method = "canUse", at = @At("HEAD"), cancellable = true, require = 1)
     private void wly$noTakeBlock(CallbackInfoReturnable<Boolean> cir) {
         if (WlyModule.on("eztweak-enderman-grief")) {
             cir.setReturnValue(false);
