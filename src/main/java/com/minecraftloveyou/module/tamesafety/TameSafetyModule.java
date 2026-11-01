@@ -57,7 +57,9 @@ public class TameSafetyModule implements WlyModule {
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 ServerLevel level = (ServerLevel) player.level();
                 AABB box = player.getBoundingBox().inflate(32, 16, 32);
-                List<TamableAnimal> pets = level.getEntitiesOfClass(TamableAnimal.class, box, TamableAnimal::isTame);
+                // 只处理「自己的」宠物：早期只按 isTame 过滤，会把别人的狗也一起传送/推走
+                List<TamableAnimal> pets = level.getEntitiesOfClass(TamableAnimal.class, box,
+                        t -> t.isTame() && t.getOwner() == player);
                 for (TamableAnimal pet : pets) {
                     protectPet(pet, level);
                 }

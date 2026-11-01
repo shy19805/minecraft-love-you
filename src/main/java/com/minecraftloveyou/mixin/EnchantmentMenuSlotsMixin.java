@@ -23,6 +23,10 @@ public abstract class EnchantmentMenuSlotsMixin {
 
     @Inject(method = "slotsChanged", at = @At("TAIL"))
     private void wly$sendReveal(net.minecraft.world.Container container, CallbackInfo ci) {
+        // 门控：模块关闭时完全不计算、不发包（此前缺失，关了仍在跑 3×getEnchantmentList + 发 S2C）
+        if (!com.minecraftloveyou.core.WlyModule.on("enchant-reveal")) {
+            return;
+        }
         EnchantmentMenu menu = (EnchantmentMenu) (Object) this;
         if (!(menu.slots.isEmpty())) {
             // 触发者上下文：从 menu 拿不到 player → 由 broadcastChanges 已同步；此处遍历 server 玩家打开的该菜单

@@ -21,6 +21,10 @@ public class SplashMilkItem extends Item {
 
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        // 门控：模块关掉时物品还在（注册表已冻结，物品没法注销），但右键不生效
+        if (!com.minecraftloveyou.core.WlyModule.on(SplashMilkModule.ID)) {
+            return InteractionResult.PASS;
+        }
         ItemStack stack = player.getItemInHand(hand);
         level.playSound(null, player.getX(), player.getY(), player.getZ(),
                 SoundEvents.SNOWBALL_THROW, SoundSource.NEUTRAL, 0.5F,

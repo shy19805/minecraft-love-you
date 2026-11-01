@@ -76,12 +76,16 @@ public class MendHoldModule implements WlyModule {
             if (dmg <= 0) {
                 continue;
             }
-            int repair = Math.min(dmg, xp / Math.max(1, costPerDurability));
+            // 关键：每轮都重新读取 totalExperience。早期用循环外的快照 xp 计算 repair，
+            // 修完第一件后 xp 已减少但快照没变 → 第二件按「原本的经验」继续修，
+            // 总经验被扣成负数 → recalcLevels 夹到 0 → 玩家白嫖耐久。
+            int xpNow = Math.max(0, sp.totalExperience);
+            int repair = Math.min(dmg, xpNow / Math.max(1, costPerDurability));
             if (repair <= 0) {
                 break;
             }
             stack.setDamageValue(dmg - repair);
-            sp.totalExperience -= repair * costPerDurability;
+            sp.totalExperience = xpNow - repair * costPerDurability;
             recalcLevels(sp);
             mended = true;
             world.playSound(null, sp.blockPosition(), SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.4F, 1.6F);

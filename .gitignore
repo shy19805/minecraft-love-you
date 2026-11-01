@@ -4,3 +4,7 @@ run/
 *.log
 eula.txt
 .DS_Store
+__pycache__/
+.mcmod/
+.verify/
+.workbuddy-ai/

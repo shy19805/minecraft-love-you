@@ -29,8 +29,15 @@ public class CtmModule implements WlyModule {
     
 
     @Override
+    public boolean clientOnly() {
+        return true; // 纯客户端贴图覆盖，专服无意义
+    }
+
+    @Override
     public void init(ModuleContext ctx) {
-        // 通过静态资源覆盖（assets/minecraft/textures/block/glass*.png 去边框）实现无缝玻璃。
-        // 注意：纹理为静态资源，无法在运行时切换；关掉本模块后重启才会恢复原版边框（MVP 限制，强 CTM 留后续）。
+        // ⚠ 本模块的贴图覆盖（assets/minecraft/textures/block/glass*.png）是**静态资源**：
+        //   只要 jar 在，覆盖就生效，开关无法在运行时撤销。
+        //   真实控制点在「资源包」界面（F3+T 重载后生效）；此处仅作功能标记，
+        //   文案已如实说明（wly.module.ctm.desc）。强 CTM（Sodium 模型烘焙）留待后续。
     }
 }

@@ -39,6 +39,11 @@ public class MilkSplashEntity extends ThrowableItemProjectile {
     protected void onHit(HitResult result) {
         super.onHit(result);
         if (level() instanceof ServerLevel serverLevel) {
+            // 门控：模块关掉就只是「砸出去没反应」，不能照样清效果
+            if (!com.minecraftloveyou.core.WlyModule.on(SplashMilkModule.ID)) {
+                this.discard();
+                return;
+            }
             double radius = SplashMilkModule.splashRange; // 3 格生效半径
             AABB box = this.getBoundingBox().inflate(radius, 0.5, radius);
             List<LivingEntity> targets = serverLevel.getEntitiesOfClass(LivingEntity.class, box);
@@ -58,6 +63,9 @@ public class MilkSplashEntity extends ThrowableItemProjectile {
     protected void onHitEntity(EntityHitResult result) {
         super.onHitEntity(result);
         // 命中实体额外清一次（保险）
+        if (!com.minecraftloveyou.core.WlyModule.on(SplashMilkModule.ID)) {
+            return;
+        }
         if (result.getEntity() instanceof LivingEntity le && !level().isClientSide()) {
             le.removeAllEffects();
         }

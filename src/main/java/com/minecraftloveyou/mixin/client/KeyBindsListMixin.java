@@ -12,8 +12,13 @@ import org.spongepowered.asm.mixin.injection.Redirect;
  * 按键设置里的"黄色 [ ] 冲突警告"（duplicateKeybinds）不再显示——
  * 同键绑定的多个功能在 26.2 本就全部激活（KeyMapping.click/set 遍历所有同键映射），
  * 这里只消掉视觉冲突标记。
+ *
+ * <p><b>目标必须是 KeyEntry 而不是 Entry</b>：`KeyBindsList$Entry.refreshEntry()` 是
+ * **abstract**（无字节码），@Redirect 挂上去必然不生效；真正实现（含
+ * `KeyMapping.same(...)` 调用）在子类 `KeyBindsList$KeyEntry.refreshEntry()` 里。
+ * 26.1.2 / 26.2 两版一致。
  */
-@Mixin(KeyBindsList.Entry.class)
+@Mixin(KeyBindsList.KeyEntry.class)
 public abstract class KeyBindsListMixin {
 
     @Redirect(

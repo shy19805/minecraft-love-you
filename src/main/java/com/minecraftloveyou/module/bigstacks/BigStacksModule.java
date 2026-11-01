@@ -28,10 +28,18 @@ public class BigStacksModule implements WlyModule {
     @Override
     public void init(ModuleContext ctx) {
         // /bigstacktest <数量>：调试命令（服务端改主手数量，用于验证大堆叠）
+        // 需要 OP 2 级 + 模块处于启用状态（否则等于给了所有人一条任意改物品数量的作弊指令）
         net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, reg, env) ->
                 dispatcher.register(net.minecraft.commands.Commands.literal("bigstacktest")
+                        // 26.x 权限系统：CommandSourceStack 没有 hasPermission(int)，
+                        // 走 permissions() + Permissions 常量（两版都有）
+                        .requires(src -> src.permissions().hasPermission(
+                                net.minecraft.server.permissions.Permissions.COMMANDS_GAMEMASTER))
                         .then(net.minecraft.commands.Commands.argument("count", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 9_999_999))
                                 .executes(c -> {
+                                    if (!on()) {
+                                        return 0;
+                                    }
                                     var player = c.getSource().getPlayerOrException();
                                     var held = player.getMainHandItem();
                                     if (held.isEmpty()) {

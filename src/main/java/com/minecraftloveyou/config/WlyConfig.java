@@ -19,6 +19,7 @@ public final class WlyConfig {
         private static final java.util.LinkedHashMap<String, String> GROUP_RULES = new java.util.LinkedHashMap<>() {{
         // ── 战斗与规则 ──
         put("powershot", "wly.category.combat");
+        put("trajectory", "wly.category.combat");
         put("friendly-fire", "wly.category.combat");
         put("infinity-arrows", "wly.category.combat");
         put("climbing", "wly.category.combat");
@@ -29,6 +30,8 @@ public final class WlyConfig {
         put("rendi", "wly.category.combat");
         put("elb", "wly.category.combat");
         put("anvil-master", "wly.category.combat");
+        put("anvil-no-limit", "wly.category.combat");
+        put("anvil-repair", "wly.category.combat");
         put("reroll", "wly.category.combat");
         put("enchant-reveal", "wly.category.combat");
         put("enchant-tweak", "wly.category.combat");
@@ -45,6 +48,7 @@ public final class WlyConfig {
         put("open-water", "wly.category.farming");
         put("snow-cap", "wly.category.farming");
         put("smooth-bedrock", "wly.category.farming");
+        put("offline-catchup", "wly.category.farming");
         // ── 物品与便利 ──
         put("big-stacks", "wly.category.items");
         put("sort", "wly.category.items");
@@ -95,9 +99,24 @@ public final class WlyConfig {
                         .startBooleanToggle(Component.translatable(m.displayName())
                                         .append(Component.literal(" (" + id + ")")), cur)
                         .setDefaultValue(m.enabledByDefault())
-                        .setTooltip(Component.translatable("wly.config.toggle.tooltip"))
+                        // 每个模块显示自己的功效说明（wly.module.<id>.desc），不再是统一的「关闭后完全失效」
+                        .setTooltip(Component.translatable("wly.module." + id + ".desc"))
                         .setSaveConsumer(v -> WlyConfigData.put(id, v))
                         .build());
+
+                // 联动配置项：所有箭配无限开关下方紧邻「免箭矢库存」子开关
+                if (id.equals("infinity-arrows")) {
+                    cat.addEntry(builder.entryBuilder()
+                            .startBooleanToggle(Component.translatable("wly.config.infinity_arrows.free_arrow"),
+                                    com.minecraftloveyou.module.infarrows.InfArrowsModule.freeArrowWithoutStock)
+                            .setDefaultValue(true)
+                            .setTooltip(Component.translatable("wly.config.infinity_arrows.free_arrow.tooltip"))
+                            .setSaveConsumer(v -> {
+                                com.minecraftloveyou.module.infarrows.InfArrowsModule.freeArrowWithoutStock = v;
+                                WlyConfigData.save();
+                            })
+                            .build());
+                }
 
                 // 联动配置项：力量射击开关下方紧邻初速数值 + 伤害开关/上限
                 if (id.equals("powershot")) {
@@ -135,7 +154,22 @@ public final class WlyConfig {
                             .build());
                 }
 
-            // 联动配置项：大堆叠开关下方紧邻堆叠上限
+                // 联动配置项：铁砧修复开关下方紧邻每档消耗铁锭数
+                if (id.equals("anvil-repair")) {
+                    cat.addEntry(builder.entryBuilder()
+                            .startIntField(Component.translatable("wly.config.anvil_repair.cost"),
+                                    com.minecraftloveyou.module.anvilrepair.AnvilRepairModule.repairCost)
+                            .setMin(1).setMax(31)
+                            .setDefaultValue(3)
+                            .setTooltip(Component.translatable("wly.config.anvil_repair.cost.tooltip"))
+                            .setSaveConsumer(v -> {
+                                com.minecraftloveyou.module.anvilrepair.AnvilRepairModule.repairCost = Math.max(1, v);
+                                WlyConfigData.save();
+                            })
+                            .build());
+                }
+
+                // 联动配置项：大堆叠开关下方紧邻堆叠上限
                 if (id.equals("big-stacks")) {
                     cat.addEntry(builder.entryBuilder()
                             .startIntField(Component.translatable("wly.config.big_stacks.max_stack"), com.minecraftloveyou.module.bigstacks.BigStacksModule.maxStack)

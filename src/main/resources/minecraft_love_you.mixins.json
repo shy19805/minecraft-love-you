@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "OpenWaterMixin",
+    "LureTimerGuardMixin",
     "InfinityArrowsMixin",
+    "InfinityFreeArrowMixin",
     "EatWhenFullMixin",
     "FoodSaturationMixin",
     "EndermanTakeBlockMixin",
@@ -18,6 +20,8 @@
     "ServerPlayerDieMixin",
     "LivingEntityClimbMixin",
     "AnvilMenuMixin",
+    "AnvilXpCostMixin",
+    "EnchantmentMenuXpCostMixin",
     "EnchantmentFullNameMixin",
     "EnchantmentMenuSlotsMixin",
     "EnchantmentMenuAccessor",
@@ -36,10 +40,14 @@
     "SlotMaxStackMixin",
     "ItemInstanceMaxStackMixin",
     "PowershotMixin",
-    "PowershotDamageMixin"
+    "PowershotDamageMixin",
+    "CatchupFurnaceAccessor",
+    "CropBlockInvoker"
   ],
   "client": [
     "NoExpWarnMixin",
+    "client.NoExpWarnLoadMixin",
+    "client.AnvilScreenExpensiveMixin",
     "client.EnchantmentScreenMixin",
     "client.MerchantScreenStockMixin",
     "client.EnchantmentScreenButtonMixin",

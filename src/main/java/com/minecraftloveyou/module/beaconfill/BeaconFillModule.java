@@ -78,27 +78,47 @@ public class BeaconFillModule implements WlyModule {
             return InteractionResult.PASS;
         }
         boolean sneaking = player.isSecondaryUseActive();
+        boolean creative = player.getAbilities().instabuild;
         ServerLevel serverLevel = (ServerLevel) world;
         BlockPos top = pos; // 被替换方块掉落位置（信标顶部）
         boolean placedAny = false;
         for (int layer = 1; layer <= 4; layer++) {
             int n = layer;
             int y = pos.getY() - layer;
+            // 从中心向外扩散：非潜行时「一次交互只放一块」，放在玩家正下方才符合直觉，
+            // 按 dx/dz 双重升序会先命中 (-n,-n) 那个角落。
+            List<int[]> ring = new ArrayList<>((2 * n + 1) * (2 * n + 1));
             for (int dx = -n; dx <= n; dx++) {
                 for (int dz = -n; dz <= n; dz++) {
-                    if (held.isEmpty()) {
+                    ring.add(new int[]{dx, dz});
+                }
+            }
+            ring.sort(java.util.Comparator.comparingInt(o -> o[0] * o[0] + o[1] * o[1]));
+            for (int[] off : ring) {
+                int dx = off[0];
+                int dz = off[1];
+                {
+                    if (held.isEmpty() && !creative) {
                         return placedAny ? InteractionResult.SUCCESS : InteractionResult.PASS;
                     }
                     BlockPos target = new BlockPos(pos.getX() + dx, y, pos.getZ() + dz);
                     BlockState targetState = world.getBlockState(target);
                     if (targetState.isAir() || targetState.canBeReplaced()) {
                         serverLevel.setBlockAndUpdate(target, Block.byItem(held.getItem()).defaultBlockState());
-                        held.shrink(1);
+                        if (!creative) {
+                            held.shrink(1);
+                        }
                         placedAny = true;
                     } else if (isBaseBlock(targetState)) {
                         continue; // 已是矿物块，跳过不消耗
                     } else {
                         // 替换普通方块：被换方块掉回信标顶部（配置）
+                        // ⚠ 先倒出容器内容物：destroyBlock(pos, false) 不触发掉落，
+                        //    箱子里装的东西会随方块实体一起被抹掉（真实丢物品）。
+                        var be = serverLevel.getBlockEntity(target);
+                        if (be instanceof net.minecraft.world.Container container) {
+                            net.minecraft.world.Containers.dropContents(serverLevel, target, container);
+                        }
                         serverLevel.destroyBlock(target, false);
                         if (dropReplacedBlockTopBeacon) {
                             Item oldItem = targetState.getBlock().asItem();
@@ -107,7 +127,9 @@ public class BeaconFillModule implements WlyModule {
                             }
                         }
                         serverLevel.setBlockAndUpdate(target, Block.byItem(held.getItem()).defaultBlockState());
-                        held.shrink(1);
+                        if (!creative) {
+                            held.shrink(1);
+                        }
                         placedAny = true;
                     }
                     if (!sneaking) {

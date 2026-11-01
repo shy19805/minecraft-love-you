@@ -17,6 +17,13 @@ public class ModuleManager {
 
     private static final Map<String, WlyModule> MODULES = new LinkedHashMap<>();
     private static final java.util.Set<String> FORCED_OFF = new java.util.HashSet<>();
+    /**
+     * 启用状态缓存：{@link #enabled(String)} 被 mixin 热路径调用
+     * （物品堆叠上限查询、每次受击、每次投掷、每 tick 攀爬），原先每次都走
+     * {@code synchronized} 的配置装载 + 两次哈希查找。改为首次解析后缓存，
+     * 配置变更时用 {@link #invalidateEnabledCache()} 整体失效。
+     */
+    private static final Map<String, Boolean> ENABLED_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 
     private ModuleManager() {
     }
@@ -31,14 +38,26 @@ public class ModuleManager {
         WorldLovesYouMod.LOGGER.info("[世界爱你] 注册模块：{}（{}）", module.displayName(), module.id());
     }
 
-    /** 模块是否启用：配置值 且 未被强制禁用。 */
+    /** 模块是否启用：配置值 且 未被强制禁用（带缓存，热路径无锁）。 */
     public static boolean enabled(String id) {
-        return !FORCED_OFF.contains(id) && WlyConfigData.moduleEnabled(id);
+        Boolean cached = ENABLED_CACHE.get(id);
+        if (cached != null) {
+            return cached;
+        }
+        boolean value = !FORCED_OFF.contains(id) && WlyConfigData.moduleEnabled(id);
+        ENABLED_CACHE.put(id, value);
+        return value;
+    }
+
+    /** 配置或强制禁用发生变化后调用：丢弃全部缓存，下次查询重新解析。 */
+    public static void invalidateEnabledCache() {
+        ENABLED_CACHE.clear();
     }
 
     /** 强制禁用（初始化失败时调用），并在内存中立即生效。 */
     public static void forceOff(String id) {
         FORCED_OFF.add(id);
+        invalidateEnabledCache();
     }
 
     public static List<String> ids() {

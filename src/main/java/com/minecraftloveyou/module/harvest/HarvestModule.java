@@ -188,7 +188,9 @@ public class HarvestModule implements WlyModule {
         Block block = state.getBlock();
         ItemStack tool = player.getMainHandItem();
         Block.dropResources(state, level, pos, level.getBlockEntity(pos), player, tool);
-        boolean hasSeed = consumeSeed(player, new ItemStack(block.asItem()));
+        // 注意：不能用 block.asItem() 当种子 —— 小麦方块 asItem 是「小麦」而非「小麦种子」，
+        // 甜菜同理。必须走原版 CropBlock.getBaseSeedId()（见 mixin/CropBlockInvoker）。
+        boolean hasSeed = consumeSeed(player, seedFor(block));
         BlockState replant = replantState(block, state);
         if (hasSeed && replant != null) {
             level.setBlock(pos, replant, 3);
@@ -344,6 +346,10 @@ public class HarvestModule implements WlyModule {
     }
 
     private static boolean consumeSeed(Player player, ItemStack seed) {
+        // 创造模式不消耗（种植分支已有同样判定，补种这条漏了）
+        if (player.getAbilities().instabuild) {
+            return true;
+        }
         var inv = player.getInventory();
         for (int i = 0; i < inv.getContainerSize(); i++) {
             ItemStack stack = inv.getItem(i);
@@ -353,5 +359,29 @@ public class HarvestModule implements WlyModule {
             }
         }
         return false;
+    }
+
+    /**
+     * 该作物「补种」需要消耗的物品。
+     *
+     * <p>关键：小麦方块的 {@code asItem()} 是**小麦**而不是**小麦种子**，甜菜同理；
+     * 直接用 {@code block.asItem()} 会导致小麦/甜菜永远找不到种子、只收不补种。
+     * 原版记录种子的是 {@link CropBlock#getBaseSeedId()}（protected）→ 走 Invoker。
+     */
+    private static ItemStack seedFor(Block block) {
+        if (block instanceof CropBlock crop) {
+            try {
+                return new ItemStack(((com.minecraftloveyou.mixin.CropBlockInvoker) crop).wly$getBaseSeedId());
+            } catch (Throwable ignored) {
+                // Invoker 未生效（理论上不会）：退回原版 asItem
+            }
+        }
+        if (block instanceof NetherWartBlock) {
+            return new ItemStack(Items.NETHER_WART);
+        }
+        if (block instanceof CocoaBlock) {
+            return new ItemStack(Items.COCOA_BEANS);
+        }
+        return new ItemStack(block.asItem());
     }
 }

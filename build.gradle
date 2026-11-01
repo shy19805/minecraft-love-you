@@ -10,6 +10,35 @@ base {
     archivesName = project.archives_base_name
 }
 
+// ---------------------------------------------------------------------------
+// 多版本基线（26.1.2 / 26.2）
+// 默认 26.1.2 = 兼容下限：编译器强制只用两版都存在的 API，产出的 jar 两版通吃。
+// 想在 26.2 上开发/运行：./gradlew runClient -Pmc=26.2
+// ---------------------------------------------------------------------------
+def MC_BASELINES = [
+        "26.1.2": [
+                loader : "0.19.3",
+                fabric : "0.155.2+26.1.2",
+                modmenu: "18.0.0",
+                cloth  : "26.1.154+fabric",
+                sodium : "mc26.1.2-0.9.2-fabric",
+        ],
+        "26.2"  : [
+                loader : "0.19.3",
+                fabric : "0.155.2+26.2",
+                modmenu: "20.0.1",
+                cloth  : "26.2.155+fabric",
+                sodium : "mc26.2-0.9.1-fabric",
+        ],
+]
+
+def mcVersion = (project.findProperty("mc") ?: "26.1.2").toString()
+def mc = MC_BASELINES[mcVersion]
+if (mc == null) {
+    throw new GradleException("未知的 mc 基线 '${mcVersion}'，可选：${MC_BASELINES.keySet()}")
+}
+logger.lifecycle("构建基线 Minecraft = ${mcVersion}（兼容范围 26.1.2 ~ 26.2）")
+
 repositories {
     mavenCentral()
     maven { url = "https://maven.terraformersmc.com/releases/" }
@@ -18,12 +47,12 @@ repositories {
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    implementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-    implementation "maven.modrinth:cloth-config:${project.cloth_config_version}"
-    compileOnly "maven.modrinth:sodium:${project.sodium_version}"
+    minecraft "com.mojang:minecraft:${mcVersion}"
+    implementation "net.fabricmc:fabric-loader:${mc.loader}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${mc.fabric}"
+    implementation "com.terraformersmc:modmenu:${mc.modmenu}"
+    implementation "maven.modrinth:cloth-config:${mc.cloth}"
+    compileOnly "maven.modrinth:sodium:${mc.sodium}"
 }
 
 processResources {

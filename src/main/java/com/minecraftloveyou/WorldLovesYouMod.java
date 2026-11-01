@@ -37,6 +37,9 @@ public class WorldLovesYouMod implements ModInitializer {
         com.minecraftloveyou.module.vineextend.VineExtendModule.register();
         com.minecraftloveyou.module.tamesafety.TameSafetyModule.register();
         com.minecraftloveyou.module.anvilmaster.AnvilMasterModule.register();
+        com.minecraftloveyou.module.anvillimit.AnvilNoLimitModule.register();
+        com.minecraftloveyou.module.anvilrepair.AnvilRepairModule.register();
+        com.minecraftloveyou.module.xppoints.XpPointsModule.register();
         com.minecraftloveyou.module.reroll.RerollModule.register();
         com.minecraftloveyou.module.enchantreveal.EnchantRevealModule.register();
         com.minecraftloveyou.module.enchanttweak.EnchantTweakModule.register();
@@ -55,6 +58,8 @@ public class WorldLovesYouMod implements ModInitializer {
         com.minecraftloveyou.module.ctm.CtmModule.register();
         com.minecraftloveyou.module.powershot.PowershotModule.register();
         com.minecraftloveyou.module.clickthrough.ClickthroughModule.register();
+        com.minecraftloveyou.module.offlinecatchup.OfflineCatchupModule.register();
+        com.minecraftloveyou.module.trajectory.TrajectoryModule.register();
         // 连锁键 C2S 同步通道
         com.minecraftloveyou.core.WlyNet.register();
         // 统一初始化（异常隔离）

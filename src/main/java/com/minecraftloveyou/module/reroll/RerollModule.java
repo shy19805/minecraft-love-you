@@ -12,7 +12,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EnchantingTableBlock;
@@ -21,6 +20,9 @@ import net.minecraft.world.phys.BlockHitResult;
 /**
  * 刷新附魔（reroll）：潜行+右键附魔台 → 消耗经验重掷三个选项。
  * 实现服务端：改玩家附魔种子 + 强制 EnchantmentMenu 重算。
+ *
+ * <p>客户端按键逻辑在 {@code client/RerollKeyHandler}（本项目铁律 8：
+ * 本类由通用入口注册，不得引用 {@code net.minecraft.client.*}）。
  */
 public class RerollModule implements WlyModule {
 
@@ -48,23 +50,6 @@ public class RerollModule implements WlyModule {
         UseBlockCallback.EVENT.register(this::onUseBlock);
     }
 
-    private static boolean lastDown = false;
-
-    /** 客户端：附魔台界面内物理键上升沿触发（vanilla 不分发界面内 click）。 */
-    public static void registerClient() {
-        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            boolean down = com.minecraftloveyou.client.WlyKeys.isPhysicallyDown(ID);
-            if (down && !lastDown) {
-                if (client.player != null && client.getConnection() != null
-                        && client.player.containerMenu instanceof net.minecraft.world.inventory.EnchantmentMenu) {
-                    ClientPlayNetworking.send(RerollRequest.INSTANCE);
-                    com.minecraftloveyou.WorldLovesYouMod.LOGGER.info("[我的世界爱你][reroll] 按键触发重掷请求");
-                }
-            }
-            lastDown = down;
-        });
-    }
-
     /** C2S 重掷请求（空载荷）。 */
     public static final class RerollRequest implements CustomPacketPayload {
         public static final RerollRequest INSTANCE = new RerollRequest();
@@ -88,11 +73,15 @@ public class RerollModule implements WlyModule {
             return InteractionResult.PASS;
         }
         ServerPlayer sp = (ServerPlayer) player;
-        handleReroll(sp);
-        if (sp.containerMenu instanceof net.minecraft.world.inventory.EnchantmentMenu) {
-            world.playSound(null, pos, net.minecraft.sounds.SoundEvents.ENCHANTMENT_TABLE_USE,
-                    net.minecraft.sounds.SoundSource.BLOCKS, 1.0F, 1.0F);
+        // 关键：只有「确实处于附魔界面」才算这次交互被我们吃掉了。
+        // 早期实现无条件 return SUCCESS —— 潜行右键附魔台（尚未打开界面）时
+        // 交互被吞、原版界面永远打不开，玩家表现为「附魔台点不动」。
+        if (!(sp.containerMenu instanceof net.minecraft.world.inventory.EnchantmentMenu)) {
+            return InteractionResult.PASS;
         }
+        handleReroll(sp);
+        world.playSound(null, pos, net.minecraft.sounds.SoundEvents.ENCHANTMENT_TABLE_USE,
+                net.minecraft.sounds.SoundSource.BLOCKS, 1.0F, 1.0F);
         return InteractionResult.SUCCESS;
     }
 

@@ -20,7 +20,8 @@ public final class WlyConfigData {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static Map<String, Boolean> STORE = new LinkedHashMap<>();
-    private static boolean loaded = false;
+    /** volatile + 双重检查：装载完成后查询走无锁快路径（热路径由 ModuleManager 缓存兜底）。 */
+    private static volatile boolean loaded = false;
 
     private WlyConfigData() {
     }
@@ -29,7 +30,14 @@ public final class WlyConfigData {
         return FabricLoader.getInstance().getConfigDir().resolve("minecraft_love_you.json");
     }
 
-    private static synchronized void ensureLoaded() {
+    private static void ensureLoaded() {
+        if (loaded) {
+            return; // 快路径：只在首次调用时进监视器
+        }
+        ensureLoadedSlow();
+    }
+
+    private static synchronized void ensureLoadedSlow() {
         if (loaded) {
             return;
         }
@@ -76,6 +84,10 @@ public final class WlyConfigData {
                     if (powDmg != null) {
                         com.minecraftloveyou.module.powershot.PowershotModule.damageEnabled = powDmg;
                     }
+                    Boolean infFreeArrow = readBool(raw, "__infinityFreeArrow");
+                    if (infFreeArrow != null) {
+                        com.minecraftloveyou.module.infarrows.InfArrowsModule.freeArrowWithoutStock = infFreeArrow;
+                    }
                     Integer powDmgMax = readNumber(raw, "__damageMax") == null ? null : readNumber(raw, "__damageMax").intValue();
                     if (powDmgMax != null) {
                         com.minecraftloveyou.module.powershot.PowershotModule.damageMax = powDmgMax;
@@ -85,8 +97,13 @@ public final class WlyConfigData {
                     if (bigStack != null) {
                         com.minecraftloveyou.module.bigstacks.BigStacksModule.maxStack = bigStack;
                     }
+                    Integer anvilRepair = readNumber(raw, "__anvilRepairCost") == null ? null : readNumber(raw, "__anvilRepairCost").intValue();
+                    if (anvilRepair != null) {
+                        com.minecraftloveyou.module.anvilrepair.AnvilRepairModule.repairCost = Math.max(1, anvilRepair);
+                    }
                     raw.remove("__eatFullCap");
                     raw.remove("__bigStack");
+                    raw.remove("__anvilRepairCost");
                     raw.remove("__eatFastSpeed");
                     raw.remove("__harvestChainLimit");
                     raw.remove("__harvestSameSpecies");
@@ -95,6 +112,7 @@ public final class WlyConfigData {
                     raw.remove("__climbDownLook");
                     raw.remove("__powerVelocity");
                     raw.remove("__damageEnabled");
+                    raw.remove("__infinityFreeArrow");
                     raw.remove("__damageMax");
                     for (Map.Entry<String, Object> e : raw.entrySet()) {
                         if (e.getValue() instanceof Boolean b) {
@@ -126,6 +144,7 @@ public final class WlyConfigData {
     public static void reload() {
         loaded = false;
         ensureLoaded();
+        com.minecraftloveyou.core.ModuleManager.invalidateEnabledCache();
     }
 
     public static boolean moduleEnabled(String id) {
@@ -143,12 +162,10 @@ public final class WlyConfigData {
         return STORE.containsKey(id);
     }
 
-    public static boolean defaultValueOf(String id) {
-        return true; // 全部功能默认开
-    }
-
     public static void put(String id, boolean value) {
         STORE.put(id, value);
+        // 开关立即生效：丢弃 ModuleManager 的启用状态缓存
+        com.minecraftloveyou.core.ModuleManager.invalidateEnabledCache();
         saveFile();
     }
 
@@ -163,6 +180,7 @@ public final class WlyConfigData {
             out.putAll(STORE);
             out.put("__eatFullCap", com.minecraftloveyou.module.eatfull.EatFullModule.saturationCap);
             out.put("__bigStack", com.minecraftloveyou.module.bigstacks.BigStacksModule.maxStack);
+            out.put("__anvilRepairCost", com.minecraftloveyou.module.anvilrepair.AnvilRepairModule.repairCost);
             out.put("__eatFastSpeed", com.minecraftloveyou.module.eatfast.EatFastModule.eatSpeed);
             out.put("__harvestChainLimit", com.minecraftloveyou.module.harvest.HarvestModule.chainLimit);
             out.put("__harvestSameSpecies", com.minecraftloveyou.module.harvest.HarvestModule.sameSpecies);
@@ -172,6 +190,7 @@ public final class WlyConfigData {
             out.put("__powerVelocity", com.minecraftloveyou.module.powershot.PowershotModule.powerVelocity);
             out.put("__damageEnabled", com.minecraftloveyou.module.powershot.PowershotModule.damageEnabled);
             out.put("__damageMax", com.minecraftloveyou.module.powershot.PowershotModule.damageMax);
+            out.put("__infinityFreeArrow", com.minecraftloveyou.module.infarrows.InfArrowsModule.freeArrowWithoutStock);
             Files.writeString(configPath(), GSON.toJson(out));
         } catch (IOException e) {
             WorldLovesYouMod.LOGGER.error("[世界爱你] 配置写入失败：{}", e.toString());

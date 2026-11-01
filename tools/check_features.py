@@ -56,6 +56,15 @@ for d in os.listdir(MOD_SRC):
     if os.path.isdir(os.path.join(MOD_SRC, d)):
         implemented.add(d)
 
+# 计划表里的老名字 → 实际模块目录名（改过名/合并过的在这里登记，否则会误报「未实现」）
+ALIAS = {
+    "unloaded-activity": "offlinecatchup",  # 对应 unloadedactivity 模组，本项目实现为「离线追赶」
+    "eztweak": "eztweak",                   # 已拆成 4 个子规则，目录仍在
+    "bars": "bars",
+    "loot-beams": "lootbeams",
+    "portable-spawner": "portablespawner",
+}
+
 with open(MIXINS, encoding="utf-8") as f:
     mj = json.load(f)
 mixin_count = len(mj.get("mixins", [])) + len(mj.get("client", []))
@@ -65,8 +74,8 @@ print("-" * 46)
 done = 0
 for idx in sorted(PLAN):
     mid = PLAN[idx]
-    # 目录名把 '-' 转 '' 无连字符，做一次模糊匹配
-    folder_guess = mid.replace("-", "")
+    # 目录名把 '-' 转 '' 无连字符，做一次模糊匹配；ALIAS 优先
+    folder_guess = ALIAS.get(mid, mid).replace("-", "")
     hit = any(d.replace("-", "") == folder_guess for d in implemented)
     status = "已实现" if hit or mid.startswith("(") else "未实现"
     if status == "已实现":

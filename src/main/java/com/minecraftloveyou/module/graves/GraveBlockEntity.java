@@ -21,7 +21,6 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /** 墓碑方块实体：保存死亡玩家的全部物品与经验；右键整体转交。 */
@@ -92,34 +91,6 @@ public class GraveBlockEntity extends BaseContainerBlockEntity {
         }
         this.storedXp = xp;
         this.ownerName = owner;
-        setChanged();
-    }
-
-    /** 死亡时填充内容（物品+经验）：遍历玩家全部背包/装备槽。 */
-    public void storeFrom(ServerPlayer player) {
-        var inv = player.getInventory();
-        List<ItemStack> all = new ArrayList<>();
-        for (int i = 0; i < inv.getContainerSize(); i++) {
-            ItemStack stack = inv.getItem(i);
-            if (!stack.isEmpty()) {
-                all.add(stack.copy());
-            }
-        }
-        int idx = 0;
-        for (ItemStack stack : all) {
-            if (idx >= SIZE) {
-                // 装不下：原地掉落，绝不吞物品
-                Containers.dropItemStack(player.level(), player.getX(), player.getY(), player.getZ(), stack);
-                continue;
-            }
-            items.set(idx, stack);
-            idx++;
-        }
-        storedXp = player.totalExperience;
-        ownerName = player.getName().getString();
-        player.getInventory().clearContent();
-        player.setExperienceLevels(0);
-        player.setExperiencePoints(0);
         setChanged();
     }
 

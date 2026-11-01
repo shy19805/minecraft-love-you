@@ -3,7 +3,7 @@
   "id": "minecraft_love_you",
   "version": "${version}",
   "name": "我的世界爱你 · World Loves You",
-  "description": "我的世界爱你（World Loves You）：模块化体验整合。每个功能互不影响、全部可配置开关，主动功能可配快捷键。\nWorld Loves You: a modular quality-of-life mod. Every feature is independent, toggleable, and key-bindable.",
+  "description": "我的世界爱你（World Loves You）：模块化体验整合。每个功能互不影响、全部可配置开关，主动功能可配快捷键。\\nWorld Loves You: a modular quality-of-life mod. Every feature is independent, toggleable, and key-bindable.",
   "authors": [
     "minecraft_love_you"
   ],
@@ -31,8 +31,10 @@
   "depends": {
     "fabricloader": ">=0.16.0",
     "fabric-api": "*",
-    "minecraft": "~26.2",
-    "java": ">=21",
+    "minecraft": ">=26.1.2 <26.3",
+    "java": ">=25"
+  },
+  "recommends": {
     "cloth-config": "*",
     "modmenu": "*"
   },

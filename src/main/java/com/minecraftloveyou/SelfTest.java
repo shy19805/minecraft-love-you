@@ -136,20 +136,27 @@ public final class SelfTest {
             out.add("FAIL T9 ctm 玻璃纹理缺失");
         }
 
-        // T10 语言文件：zh_cn 必备键 + en_us 前缀/键集对齐
+        // T10 语言文件：zh_cn 必备键 + **中英键集必须完全一致**
+        //     历史坑：v1.2.4 漏了 en_us 的 "wly.module.anvil-no-limit"（英文界面显示裸键名），
+        //     旧版 T10 只做 contains 抽样，抓不到 → 改为逐键比对。
         try (var zin = SelfTest.class.getClassLoader().getResourceAsStream("assets/minecraft_love_you/lang/zh_cn.json");
              var ein = SelfTest.class.getClassLoader().getResourceAsStream("assets/minecraft_love_you/lang/en_us.json")) {
             String z = zin != null ? new String(zin.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8) : "";
             String e = ein != null ? new String(ein.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8) : "";
-            boolean ok = z.contains("key.minecraft_love_you.sort") && z.contains("key.minecraft_love_you.harvest")
-                    && e.contains("\"wly.module.big-stacks\"") && e.contains("\"wly.module.anvil-master\"")
-                    && e.contains("\"wly.module.eztweak-farmland-protect\"");
+            java.util.Set<String> zk = langKeys(z);
+            java.util.Set<String> ek = langKeys(e);
+            java.util.Set<String> onlyZh = new java.util.TreeSet<>(zk);
+            onlyZh.removeAll(ek);
+            java.util.Set<String> onlyEn = new java.util.TreeSet<>(ek);
+            onlyEn.removeAll(zk);
+            boolean ok = z.contains("key.minecraft_love_you.sort") && !zk.isEmpty()
+                    && onlyZh.isEmpty() && onlyEn.isEmpty();
             if (ok) {
                 pass++;
-                out.add("PASS T10 语言文件条目存在（zh 必备键 + en_us 键集对齐）");
+                out.add("PASS T10 语言文件条目存在（zh/en 键集一致，各 " + zk.size() + " 键）");
             } else {
                 fail++;
-                out.add("FAIL T10 语言文件条目异常");
+                out.add("FAIL T10 语言键集不一致（仅 zh 有 " + onlyZh + "；仅 en 有 " + onlyEn + "）");
             }
         } catch (Throwable t) {
             fail++;
@@ -189,22 +196,48 @@ public final class SelfTest {
                 com.minecraftloveyou.module.powershot.PowershotModule.damageEnabled = true;
                 com.minecraftloveyou.module.powershot.PowershotModule.damageMax = 50;
                 try {
-                    var snowball = new net.minecraft.world.entity.projectile.throwableitemprojectile.Snowball(level, 0.5, 81, 0.5, net.minecraft.world.item.ItemStack.EMPTY);
-                    snowball.setPos(0.5, 81, 0.5);
-                    float hpBefore = le.getHealth();
-                    var hit = new net.minecraft.world.phys.EntityHitResult(le, le.position());
-                    var m = net.minecraft.world.entity.projectile.Projectile.class.getDeclaredMethod("onHitEntity", net.minecraft.world.phys.EntityHitResult.class);
+                    var m = net.minecraft.world.entity.projectile.Projectile.class
+                            .getDeclaredMethod("onHitEntity", net.minecraft.world.phys.EntityHitResult.class);
                     m.setAccessible(true);
-                    m.invoke(snowball, hit);
-                    float hpAfter = le.getHealth();
-                    float dealt = hpBefore - hpAfter;
+                    var hit = new net.minecraft.world.phys.EntityHitResult(le, le.position());
+
+                    // 反例：没有 owner 的雪球（怪物/发射器来源）→ 新作用域下不应造成伤害
+                    var stray = new net.minecraft.world.entity.projectile.throwableitemprojectile.Snowball(
+                            level, 0.5, 81, 0.5, net.minecraft.world.item.ItemStack.EMPTY);
+                    stray.setPos(0.5, 81, 0.5);
+                    float hp0 = le.getHealth();
+                    m.invoke(stray, hit);
+                    boolean rejected = le.getHealth() == hp0;
+
+                    // 正向：owner 是玩家（本自检构造的假玩家对象）→ 应造成伤害
+                    var profile = new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "wly_selftest");
+                    var fakePlayer = new net.minecraft.server.level.ServerPlayer(server, level, profile,
+                            net.minecraft.server.level.ClientInformation.createDefault());
+                    // 宠物样本：雪傀儡（无 owner 字段，只能由玩家建造 → 按类型整体归入玩家阵营）
+                    var fakePet = new net.minecraft.world.entity.animal.golem.SnowGolem(
+                            snowGolemType(), level);
+                    var owned = new net.minecraft.world.entity.projectile.throwableitemprojectile.Snowball(
+                            level, 0.5, 81, 0.5, net.minecraft.world.item.ItemStack.EMPTY);
+                    owned.setPos(0.5, 81, 0.5);
+                    owned.setOwner(fakePlayer);
+                    float hp1 = le.getHealth();
+                    m.invoke(owned, hit);
+                    float dealt = hp1 - le.getHealth();
+
+                    // 过滤函数自身行为（玩家=true / 无主=false / 怪物=false / 宠物=true）
+                    boolean filterOk = com.minecraftloveyou.core.PlayerSide.isPlayerOrPet(fakePlayer)
+                            && !com.minecraftloveyou.core.PlayerSide.isPlayerOrPet(null)
+                            && !com.minecraftloveyou.core.PlayerSide.isPlayerOrPet(le)
+                            && com.minecraftloveyou.core.PlayerSide.isPlayerOrPet(fakePet);
+
                     // v=2 → dmg=round(2*5)=10
-                    if (dealt >= 5 && dealt <= 15) {
+                    if (rejected && dealt >= 5 && dealt <= 15 && filterOk) {
                         pass++;
-                        out.add("PASS T12 投掷物伤害生效（僵尸掉血 " + dealt + "，期望约10）");
+                        out.add("PASS T12 投掷物伤害作用域（无主不伤 / 玩家生效 掉血 " + dealt + "）");
                     } else {
                         fail++;
-                        out.add("FAIL T12 伤害未按预期（掉血 " + dealt + "，期望约10）");
+                        out.add("FAIL T12 伤害作用域异常（无主拦截=" + rejected
+                                + " 玩家掉血=" + dealt + "（期望 5~15） 过滤=" + filterOk + "）");
                     }
                 } finally {
                     le.discard();
@@ -218,9 +251,271 @@ public final class SelfTest {
             out.add("FAIL T12 伤害测试异常：" + t);
         }
 
+        // T13 离线追赶：放一个熔炉 + 原料 + 燃料，模拟「离线 10 分钟」，验证烧炼真的被补偿
+        try {
+            var level = server.overworld();
+            var pos = new net.minecraft.core.BlockPos(8, 80, 8);
+            level.setBlock(pos, net.minecraft.world.level.block.Blocks.FURNACE.defaultBlockState(), 3);
+            var be = level.getBlockEntity(pos);
+            if (!(be instanceof net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity furnace)) {
+                fail++;
+                out.add("FAIL T13 无法放置测试熔炉");
+            } else {
+                furnace.setItem(0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.RAW_IRON, 4));
+                furnace.setItem(1, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.COAL, 1));
+                com.minecraftloveyou.module.offlinecatchup.CatchupEngine.catchupChunk(
+                        level, level.getChunkAt(pos), 600_000L); // 10 分钟
+                int produced = furnace.getItem(2).getCount();
+                int leftIn = furnace.getItem(0).getCount();
+                if (produced >= 1) {
+                    pass++;
+                    out.add("PASS T13 离线追赶熔炉补偿（模拟离线 10 分钟 → 产出铁锭 " + produced
+                            + " 个，输入槽剩 " + leftIn + "）");
+                } else {
+                    fail++;
+                    out.add("FAIL T13 离线追赶未产出（输出槽 " + produced + "，输入槽 " + leftIn + "）");
+                }
+                level.removeBlock(pos, false);
+            }
+        } catch (Throwable t) {
+            fail++;
+            out.add("FAIL T13 离线追赶测试异常：" + t);
+        }
+
+        // T14 离线追赶 v1.2.3 新增的两条通路：世界时钟可取 + 玩家周围入队
+        //     这两条通路覆盖「区块从未卸载」的场景（暂停/休眠/跳过夜晚），旧实现下恒零补偿。
+        try {
+            var level = server.overworld();
+            long clock = com.minecraftloveyou.module.offlinecatchup.OfflineCatchupModule.worldClock(server);
+            var profile = new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "wly_selftest_stall");
+            var probe = new net.minecraft.server.level.ServerPlayer(server, level, profile,
+                    net.minecraft.server.level.ClientInformation.createDefault());
+            int queued = com.minecraftloveyou.module.offlinecatchup.OfflineCatchupModule
+                    .enqueueAroundForTest(probe, 600_000L); // 10 分钟
+            if (clock > 0L && queued > 0) {
+                pass++;
+                out.add("PASS T14 离线追赶停摆/睡觉通路（世界时钟=" + clock + " 刻，玩家周围入队 " + queued + " 区块）");
+            } else {
+                fail++;
+                out.add("FAIL T14 停摆/睡觉通路不通（世界时钟=" + clock + "（期望 >0） 入队=" + queued + "（期望 >0））");
+            }
+        } catch (Throwable t) {
+            fail++;
+            out.add("FAIL T14 停摆/睡觉通路异常：" + t);
+        }
+
+        // T15 经验值计费：经验值点数换算必须与原版分段公式一致
+        //     已知锚点：升到 30 级共需 1395 点；升到 15 级共需 315 点。
+        try {
+            var level = server.overworld();
+            var profile = new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "wly_selftest_xp");
+            var probe = new net.minecraft.server.level.ServerPlayer(server, level, profile,
+                    net.minecraft.server.level.ClientInformation.createDefault());
+            probe.experienceLevel = 30;
+            probe.experienceProgress = 0.0F;
+            int at30 = com.minecraftloveyou.module.xppoints.XpPointsModule.of(probe);
+            probe.experienceLevel = 15;
+            int at15 = com.minecraftloveyou.module.xppoints.XpPointsModule.of(probe);
+            probe.experienceLevel = 0;
+            int at0 = com.minecraftloveyou.module.xppoints.XpPointsModule.of(probe);
+            if (at30 == 1395 && at15 == 315 && at0 == 0) {
+                pass++;
+                out.add("PASS T15 经验值点数换算（0 级=" + at0 + "，15 级=" + at15 + "，30 级=" + at30 + "）");
+            } else {
+                fail++;
+                out.add("FAIL T15 经验值点数换算异常（0 级=" + at0 + "（期望 0），15 级=" + at15
+                        + "（期望 315），30 级=" + at30 + "（期望 1395））");
+            }
+        } catch (Throwable t) {
+            fail++;
+            out.add("FAIL T15 经验值点数换算异常：" + t);
+        }
+
+        // T16 铁砧修复：状态映射（损坏→开裂→完好→null）+ 朝向保留 + 配置接线
+        try {
+            var facing = net.minecraft.world.level.block.AnvilBlock.FACING;
+            var damaged = net.minecraft.world.level.block.Blocks.DAMAGED_ANVIL.defaultBlockState()
+                    .setValue(facing, net.minecraft.core.Direction.NORTH);
+            var toChipped = com.minecraftloveyou.module.anvilrepair.AnvilRepairModule.repairedState(damaged);
+            var toAnvil = toChipped == null ? null
+                    : com.minecraftloveyou.module.anvilrepair.AnvilRepairModule.repairedState(toChipped);
+            var pristine = toAnvil == null ? null
+                    : com.minecraftloveyou.module.anvilrepair.AnvilRepairModule.repairedState(toAnvil);
+            boolean facingKept = toChipped != null
+                    && toChipped.hasProperty(facing)
+                    && toChipped.getValue(facing) == net.minecraft.core.Direction.NORTH;
+            int cost = com.minecraftloveyou.module.anvilrepair.AnvilRepairModule.repairCost;
+            boolean chain = toChipped != null
+                    && toChipped.getBlock() == net.minecraft.world.level.block.Blocks.CHIPPED_ANVIL
+                    && toAnvil != null
+                    && toAnvil.getBlock() == net.minecraft.world.level.block.Blocks.ANVIL
+                    && pristine == null;
+            if (chain && facingKept && cost >= 1 && cost <= 31) {
+                pass++;
+                out.add("PASS T16 铁砧修复映射（损坏→开裂→完好→null，朝向保留，每档 " + cost + " 锭）");
+            } else {
+                fail++;
+                out.add("FAIL T16 铁砧修复映射异常（链路=" + chain + "（期望 true） 朝向保留=" + facingKept
+                        + " 每档=" + cost + "（期望 1~31））");
+            }
+        } catch (Throwable t) {
+            fail++;
+            out.add("FAIL T16 铁砧修复映射异常：" + t);
+        }
+
+        // T17 饵钓超上限的咬钩计时死锁兜底（LureTimerGuardMixin）
+        //     真实构造 lureSpeed=800（=饵钓 8 级）的浮漂，反射调一次 catchingFish：
+        //     该次调用只会走最后的 else 分支去播种 timeUntilLured，不碰其它状态。
+        //     原版算式是 nextInt(100,600) - lureSpeed，饵钓 8 时恒 ≤ 0 ⇒ 永不咬钩；
+        //     兜底后必须恒 ≥ 1。同时该注入带 require=1，没绑上会在类加载期直接抛，不会静默。
+        try {
+            var hookType = BuiltInRegistries.ENTITY_TYPE
+                    .get(net.minecraft.resources.Identifier.withDefaultNamespace("fishing_bobber"))
+                    .map(net.minecraft.core.Holder.Reference::value).orElse(null);
+            if (hookType == null) {
+                fail++;
+                out.add("FAIL T17 取不到 fishing_bobber 实体类型");
+            } else {
+                boolean elbWas = com.minecraftloveyou.core.ModuleManager.enabled("elb");
+                if (!elbWas) {
+                    com.minecraftloveyou.config.WlyConfigData.put("elb", true);
+                }
+                int minSeen = Integer.MAX_VALUE;
+                int minSeenNoGuard = Integer.MAX_VALUE;
+                int worstAcrossLevels = Integer.MAX_VALUE;
+                int saturatedField = -1;
+                try {
+                    var ctor = net.minecraft.world.entity.projectile.FishingHook.class
+                            .getDeclaredConstructor(net.minecraft.world.entity.EntityType.class,
+                                    net.minecraft.world.level.Level.class, int.class, int.class);
+                    ctor.setAccessible(true);
+                    var catchM = net.minecraft.world.entity.projectile.FishingHook.class
+                            .getDeclaredMethod("catchingFish", net.minecraft.core.BlockPos.class);
+                    catchM.setAccessible(true);
+                    var lureF = net.minecraft.world.entity.projectile.FishingHook.class
+                            .getDeclaredField("timeUntilLured");
+                    lureF.setAccessible(true);
+                    var speedF = net.minecraft.world.entity.projectile.FishingHook.class
+                            .getDeclaredField("lureSpeed");
+                    speedF.setAccessible(true);
+                    var lvl = server.overworld();
+                    // 全区间扫描：0 / 原版满级 300 / 出问题的 800 / 饱和点上下 / 溢出边界
+                    int[] levels = {0, 100, 300, 500, 600, 800, 5000, 20000, Integer.MAX_VALUE};
+                    for (int lure : levels) {
+                        for (int trial = 0; trial < 300; trial++) {
+                            Object hook = ctor.newInstance(hookType, lvl, 4, lure);
+                            catchM.invoke(hook, net.minecraft.core.BlockPos.ZERO);
+                            int seeded = lureF.getInt(hook);
+                            worstAcrossLevels = Math.min(worstAcrossLevels, seeded);
+                            if (lure == 800) {
+                                minSeen = Math.min(minSeen, seeded);
+                            }
+                        }
+                    }
+                    // 饱和必须真的发生：喂进 MAX_VALUE，字段要被压回 5000（否则 +1 会溢出回绕）
+                    saturatedField = speedF.getInt(ctor.newInstance(hookType, lvl, 4, Integer.MAX_VALUE));
+                    // 反向锁：关掉模块后同一套调用必须重新变回「恒 ≤ 0」，
+                    // 否则说明这条兜底根本没判在真交付的那条路径上。
+                    com.minecraftloveyou.config.WlyConfigData.put("elb", false);
+                    for (int trial = 0; trial < 400; trial++) {
+                        Object hook = ctor.newInstance(hookType, lvl, 4, 800);
+                        catchM.invoke(hook, net.minecraft.core.BlockPos.ZERO);
+                        minSeenNoGuard = Math.min(minSeenNoGuard, lureF.getInt(hook));
+                    }
+                } finally {
+                    com.minecraftloveyou.config.WlyConfigData.put("elb", elbWas);
+                }
+                if (minSeen >= 1 && minSeenNoGuard <= 0
+                        && worstAcrossLevels >= 1 && saturatedField == 5000) {
+                    pass++;
+                    out.add("PASS T17 咬钩计时兜底：饵钓8 最小 timeUntilLured=" + minSeen
+                            + "；全区间(0~MAX_VALUE)最差=" + worstAcrossLevels
+                            + "；喂 MAX_VALUE 后 lureSpeed 饱和为 " + saturatedField
+                            + "；关模块最小=" + minSeenNoGuard + "（复现原版死锁）");
+                } else {
+                    fail++;
+                    out.add("FAIL T17 兜底异常：饵钓8=" + minSeen + "（需≥1）"
+                            + " 全区间最差=" + worstAcrossLevels + "（需≥1）"
+                            + " 饱和后字段=" + saturatedField + "（需=5000，否则 +1 会溢出回绕）"
+                            + " 关模块=" + minSeenNoGuard + "（需≤0）");
+                }
+            }
+        } catch (Throwable t) {
+            fail++;
+            Throwable root = t;
+            while (root.getCause() != null && root.getCause() != root) {
+                root = root.getCause();
+            }
+            StackTraceElement top = root.getStackTrace().length > 0 ? root.getStackTrace()[0] : null;
+            out.add("FAIL T17 咬钩计时兜底异常：" + t + " ← 根因 " + root.getClass().getName()
+                    + ": " + root.getMessage() + " @ " + top);
+        }
+
+        // T18 启用状态缓存：配置改动必须让缓存立即失效（否则改开关要重启游戏才生效）
+        try {
+            String probe = "rendi";
+            boolean before = com.minecraftloveyou.core.WlyModule.on(probe);
+            com.minecraftloveyou.config.WlyConfigData.put(probe, !before);
+            boolean flipped = com.minecraftloveyou.core.WlyModule.on(probe);
+            com.minecraftloveyou.config.WlyConfigData.put(probe, before);
+            boolean restored = com.minecraftloveyou.core.WlyModule.on(probe);
+            if (flipped == !before && restored == before) {
+                pass++;
+                out.add("PASS T18 启用状态缓存（put 立即生效：原=" + before + " → 切=" + flipped
+                        + " → 还原=" + restored + "）");
+            } else {
+                fail++;
+                out.add("FAIL T18 启用状态缓存未失效（原=" + before + "，期望切=" + (!before)
+                        + " 实得=" + flipped + "；还原期望=" + before + " 实得=" + restored + "）");
+            }
+        } catch (Throwable t) {
+            fail++;
+            out.add("FAIL T18 启用状态缓存异常：" + t);
+        }
+
         WorldLovesYouMod.LOGGER.info("[我的世界爱你][自检] ===== 自检结果 {} PASS / {} FAIL =====", pass, fail);
         for (String line : out) {
             WorldLovesYouMod.LOGGER.info("[我的世界爱你][自检] " + line);
         }
+    }
+
+    /**
+     * 抽取 lang json 的顶层键名集合（这些语言文件是扁平的 key: value，逐行正则足够）。
+     * 用于 T10 做「中英键集必须完全一致」的断言。
+     */
+    private static java.util.Set<String> langKeys(String json) {
+        java.util.Set<String> keys = new java.util.HashSet<>();
+        var p = java.util.regex.Pattern.compile("^\\s*\"([^\"]+)\"\\s*:");
+        for (String line : json.split("\n")) {
+            var m = p.matcher(line);
+            if (m.find()) {
+                keys.add(m.group(1));
+            }
+        }
+        return keys;
+    }
+
+    /**
+     * 兼容取「雪傀儡」实体类型 —— 本项目第 3 个跨版本分叉点：
+     * <ul>
+     *   <li>26.1.2：常量挂在 {@code net.minecraft.world.entity.EntityType.SNOW_GOLEM}；</li>
+     *   <li>26.2　：常量整体搬到 {@code net.minecraft.world.entity.EntityTypes.SNOW_GOLEM}
+     *       （{@code EntityType} 只剩类型本身，不再持有任何实体常量）。</li>
+     * </ul>
+     * 两版类名不同，无法用同一个符号编译，故用反射兜底。仅自检用，不影响发布代码。
+     */
+    @SuppressWarnings("unchecked")
+    private static net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.animal.golem.SnowGolem> snowGolemType() {
+        for (String holder : new String[]{
+                "net.minecraft.world.entity.EntityType",
+                "net.minecraft.world.entity.EntityTypes"}) {
+            try {
+                return (net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.animal.golem.SnowGolem>)
+                        Class.forName(holder).getField("SNOW_GOLEM").get(null);
+            } catch (ReflectiveOperationException ignored) {
+                // 该版本没有这个名字，试下一个
+            }
+        }
+        throw new IllegalStateException("找不到 SNOW_GOLEM 实体类型（EntityType / EntityTypes 两版命名都不匹配）");
     }
 }

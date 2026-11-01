@@ -53,10 +53,10 @@ public class ClimbingModule implements WlyModule {
             return;
         }
         if (moving) {
-            // 上行加速 y>0；下行（按前进键俯视）y<0 同样乘性放大；按潜行（原版下滑）也加速
+            // 只放大「上行」。下行不要再乘一次：LivingEntityClimbMixin 已经把
+            // handleOnClimbable 的下行下限 -0.15 放大成 -0.15*speed，这里再乘
+            // 就是双重放大（speed=5 时下行会到 -2.55，直接穿地板）。
             if (d.y > 0) {
-                d = new Vec3(d.x, d.y * (1.0 + (speed - 1.0) * 0.6), d.z);
-            } else if (d.y < 0) {
                 d = new Vec3(d.x, d.y * (1.0 + (speed - 1.0) * 0.6), d.z);
             }
         }

@@ -45,7 +45,7 @@ public class SaturationNumberHud implements HudElement {
         float saturation = Mth.clamp(player.getFoodData().getSaturationLevel(), 0.0F, EatFullModule.saturationCap);
         String text = (saturation % 1.0F == 0.0F)
                 ? String.valueOf((int) saturation)
-                : String.format("%.1f", saturation);
+                : String.format(java.util.Locale.ROOT, "%.1f", saturation); // 必须 ROOT：默认 Locale 会出 "12,5"
         int w = mc.getWindow().getGuiScaledWidth();
         int h = mc.getWindow().getGuiScaledHeight();
         // 饥饿条右端在 width/2 + 91，向下 10px 与图标行对齐（原版 food bar 基线 y = height - rightHeight）

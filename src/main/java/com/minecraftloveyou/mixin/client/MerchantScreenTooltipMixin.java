@@ -1,7 +1,6 @@
 package com.minecraftloveyou.mixin.client;
 
 import com.minecraftloveyou.core.WlyModule;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.MerchantScreen;
 import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,7 +23,8 @@ public abstract class MerchantScreenTooltipMixin {
         if (!WlyModule.on("trade-display")) {
             return;
         }
-        if (!(Minecraft.getInstance().gui.screen() instanceof MerchantScreen self)) {
+        // 26.2: mc.gui.screen()；26.1.2: mc.screen 字段 —— 走兼容层，同一 jar 两版通用
+        if (!(com.minecraftloveyou.client.ClientCompat.currentScreen() instanceof MerchantScreen self)) {
             return;
         }
         var offers = self.getMenu().getOffers();

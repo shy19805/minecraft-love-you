@@ -20,15 +20,17 @@ public class WorldLovesYouClient implements ClientModInitializer {
         // 饱和度数字 HUD（独立根层，兼容 HUD 修改模组）
         SaturationNumberHud.register();
         // 一键整理按键 tick
-        com.minecraftloveyou.module.sort.SortModule.registerClient();
+        com.minecraftloveyou.client.SortKeyHandler.register();
         // 刷新附魔按键 tick
-        com.minecraftloveyou.module.reroll.RerollModule.registerClient();
+        com.minecraftloveyou.client.RerollKeyHandler.register();
         // 实体渲染器（缺失会投掷即崩）
         EntityRenderers.register();
         // 墓碑 → Xaero 路点扫描器
         GraveWaypointScanner.register();
         // 手持耐久条
-        // 战利品光束 / 弹道轨迹
+        // 战利品光束
+        // 弹道预测（PTP 等价）
+        TrajectoryRenderer.register();
         // 智能提示
         com.minecraftloveyou.module.smarttooltip.SmartTooltipModule.registerClient();
         // enchant-reveal S2C 接收

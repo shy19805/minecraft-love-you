@@ -71,11 +71,11 @@ public class SmoothBedrockModule implements WlyModule {
                     chunk.setBlockState(bp, Blocks.BEDROCK.defaultBlockState(), 0);
                     continue;
                 }
-                // 最低基岩之上的基岩改石
+                // 最低基岩之上的基岩改深板岩
                 for (int y = bottom + 1; y <= minY + 10; y++) {
                     bp.set(x, y, z);
                     if (chunk.getBlockState(bp).is(Blocks.BEDROCK)) {
-                        chunk.setBlockState(bp, Blocks.STONE.defaultBlockState(), 0);
+                        chunk.setBlockState(bp, Blocks.DEEPSLATE.defaultBlockState(), 0);
                     }
                 }
             }

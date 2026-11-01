@@ -16,13 +16,16 @@ public class ChainKeySender {
 
     public static void register() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            boolean held = WlyKeys.active("harvest");
+            // 模块关闭时完全静默：不发包（此前关了也会每 100 tick 心跳一次）
+            boolean held = com.minecraftloveyou.core.WlyModule.on("harvest") && WlyKeys.active("harvest");
             tick++;
             // 状态变化立即发；稳定保持时仅每 100 tick 心跳一次（抗掉线，网络开销最小化）
             boolean resend = tick % 100 == 0;
             if (held != lastHeld || (held && resend)) {
                 lastHeld = held;
-                if (client.getConnection() != null && (held || !resend)) {
+                // 状态变化必须无条件发出：此前 `(held || !resend)` 会在 tick%100==0 时
+                // 恰好把「松键」包丢掉（1/100 概率），服务端一直以为还按着 → 连锁键卡住。
+                if (client.getConnection() != null) {
                     ClientPlayNetworking.send(new WlyNet.ChainKeyPayload(held));
                 }
             }

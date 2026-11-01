@@ -54,11 +54,10 @@ public class SpawnerPlusModule implements WlyModule {
                 return;
             }
             if (state.getBlock() instanceof net.minecraft.world.level.block.SpawnerBlock) {
-                var item = net.minecraft.world.level.block.Blocks.SPAWNER.asItem();
-                BlockState bs = world.getBlockState(pos);
-                net.minecraft.world.level.block.Block.dropResources(bs, (net.minecraft.server.level.ServerLevel) world,
-                        pos, world.getBlockEntity(pos), player, player.getMainHandItem());
-                net.minecraft.world.level.block.Block.popResource(world, pos, new ItemStack(item));
+                // 只掉一个本体：早期还额外调了一次 dropResources，如果数据包给刷怪笼补了
+                // 掉落表，就会掉出两个刷怪笼。这里统一只 popResource。
+                net.minecraft.world.level.block.Block.popResource(world, pos,
+                        new ItemStack(net.minecraft.world.level.block.Blocks.SPAWNER.asItem()));
             }
         });
     }

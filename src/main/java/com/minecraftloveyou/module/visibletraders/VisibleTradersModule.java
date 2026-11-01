@@ -25,12 +25,9 @@ public class VisibleTradersModule implements WlyModule {
     
 
     @Override
-    public boolean clientOnly() {
-        return true;
-    }
-
-    @Override
     public void init(ModuleContext ctx) {
-        // 行为在 client mixin
+        // 行为分两半：服务端 VillagerTradesMixin（把高级档交易补进 offers 并标为缺货，
+        // 否则客户端根本收不到这些交易）+ 客户端 MerchantScreenStockMixin（缺货不灰显）。
+        // 因此本模块不是 clientOnly。
     }
 }
