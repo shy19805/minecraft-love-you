@@ -6,13 +6,13 @@
 [![GitHub Release](https://img.shields.io/github/v/release/shy19805/minecraft-love-you?sort=semver)](https://github.com/shy19805/minecraft-love-you/releases)
 [![GitHub Stars](https://img.shields.io/github/stars/shy19805/minecraft-love-you?style=social)](https://github.com/shy19805/minecraft-love-you)
 
-**我的世界爱你**（World Loves You）是一个面向 Minecraft **26.1.2 / 26.2**（Fabric）的轻量、高性能、可配置的生存与玩法增强模组，把 **41 个实用小功能**整合进一个模组，所有功能均可独立开关、按需调整。
+**我的世界爱你**（World Loves You）是一个面向 Minecraft **26.1.2 / 26.2**（Fabric）的轻量、高性能、可配置的生存与玩法增强模组，把 **45 个实用小功能**整合进一个模组，所有功能均可独立开关、按需调整。
 
-**World Loves You** is a lightweight, high-performance, fully-configurable survival & gameplay enhancement mod for Minecraft **26.1.2 / 26.2** (Fabric). It packs **42 practical features** into one mod — each individually toggleable and tunable to your taste.
+**World Loves You** is a lightweight, high-performance, fully-configurable survival & gameplay enhancement mod for Minecraft **26.1.2 / 26.2** (Fabric). It packs **45 practical features** into one mod — each individually toggleable and tunable to your taste.
 
-> 🆕 v1.0.0：**中英双语**（简体中文 / English）——界面、配置、指令、提示全部随游戏语言切换
-> 42 个功能模块 / 4 大分组 / 全部可在游戏内独立开关 / 生成类改动与规则类改动默认关闭
-> 42 feature modules · 4 categories · every toggle independent · generation-modifying and rule-modifying features off by default
+> 🆕 v1.2.9：新增**离线追赶 / 铁砧修复 / 铁砧无上限 / 弹道预测 / 经验值计费**，力量射击与移除无敌帧收敛到「玩家阵营」口径；中英双语随游戏语言切换
+> 45 个功能模块 / 4 大分组 / 全部可在游戏内独立开关 / 生成类改动与规则类改动默认关闭
+> 45 feature modules · 4 categories · every toggle independent · generation-modifying and rule-modifying features off by default
 
 ---
 
@@ -41,6 +41,7 @@ Install [Fabric Loader](https://fabricmc.net/) and [Fabric API](https://modrinth
 | 模块 Module | 功能 / Feature |
 |---|---|
 | 力量射击 Powershot | **仅对玩家与玩家的宠物**投出的投掷物生效：初速倍率可调（0~10），可选伤害（0~50，默认关）。**Players & their pets only**: adjustable throwable velocity (0–10); optional damage (0–50, off). |
+| 弹道预测 Trajectory | 手持弓（按蓄力）/ 弩 / 三叉戟 / 雪球 / 鸡蛋 / 末影珍珠 / 药水 / 附魔之瓶时，用粒子画出预测飞行路径与落点；与力量射击倍率联动，主副手都支持。Predicted flight path & impact point drawn with particles for bows (charge-aware), crossbows, tridents and throwables; follows the Power Shot multiplier, both hands supported. |
 | 更好的攀爬 Climbing | 攀爬速度倍率（0~10，默认2）+ 俯视加速下滑。Climb speed + look-down slide. |
 | 无限箭 Infinity Arrows | 弓箭不再消耗弹药；可另开「免箭矢库存」——背包一支箭都没有也能射。Arrows never run out; optionally fire with zero arrows in stock. |
 | 友军保护 Friendly Fire | 关闭友军误伤。Disable friendly fire. |
@@ -58,7 +59,7 @@ Install [Fabric Loader](https://fabricmc.net/) and [Fabric API](https://modrinth
 | 铁砧修复 Anvil Repair | 手持铁锭**左键**铁砧，消耗铁锭升一档：损坏 → 开裂 → 完好（默认每档 3 锭，可调）。拿着铁锭左键铁砧**永远不会把它挖掉**：已完好则无反应，铁锭不足则动作栏提示；没拿铁锭时交回原版。Left-click an anvil with iron ingots to upgrade one damage tier (3 ingots per tier by default). Holding ingots never breaks the anvil. |
 | 经验值计费 XP-Point Pricing | 铁砧与附魔台改为按**经验值点数**结算（门槛与扣费都换成经验条上的真实点数）。Anvil & enchanting table charge XP **points** instead of levels. |
 | 全键无冲 Non-Conflicting Keys | 消除按键冲突警告。Remove duplicate-keybind warnings. |
-| 移除受击无敌帧 Rend Invuln | 移除受击无敌帧（兼容近战连击）。Remove i-frames (melee combo friendly). |
+| 移除受击无敌帧 Rend Invuln | **只移除其他生物**的受击无敌帧，玩家与玩家的宠物保留（避免自己被连击秒杀）；兼容近战连击。Removes i-frames for **other mobs only** — players and their pets keep them. |
 
 ### 🌾 农业与生存 / Farming & Survival
 
