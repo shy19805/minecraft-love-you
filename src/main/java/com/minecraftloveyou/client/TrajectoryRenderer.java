@@ -5,8 +5,9 @@ import com.minecraftloveyou.module.powershot.PowershotModule;
 import com.minecraftloveyou.module.trajectory.TrajectoryModule;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.particles.DustColorTransitionOptions;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -32,46 +33,42 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 弹道预测的客户端实现（模块元数据在 {@code module/trajectory/TrajectoryModule}）。
+ * 弹道预测（trajectory）的客户端实现；模块元数据在
+ * {@code module/trajectory/TrajectoryModule}。
  *
- * <p>支持：弓（按当前蓄力）、弩（已上弦）、三叉戟（蓄力 ≥10 刻）、
- * 雪球 / 鸡蛋 / 末影珍珠、喷溅与滞留药水、附魔之瓶。主手优先，主手不是投射物时看副手。
+ * <h2>为什么这样算才准</h2>
+ * 预测必须逐刻复刻**原版 tick 的积分顺序**，而不是画一条解析抛物线：
+ * <ul>
+ *   <li><b>投掷物族</b>（雪球/鸡蛋/末影珍珠/药水/附魔之瓶，{@code ThrowableProjectile}）：
+ *       {@code applyGravity()} → {@code applyInertia()} → 位移，即
+ *       <code>v.y -= g; v *= 0.99; pos += v;</code>（26.2 字节码核对：tick() 先调 applyGravity 再调 applyInertia）；</li>
+ *   <li><b>箭族</b>（箭/三叉戟，{@code AbstractArrow}）：先按当前速度位移，再
+ *       {@code v *= 0.99}，最后 {@code v.y -= 0.05}。</li>
+ * </ul>
+ * 重力：雪球/鸡蛋/珍珠 0.03，药水 0.05，附魔之瓶 0.07，箭/三叉戟 0.05；空气阻力统一 0.99。
  *
- * <p><b>物理模型（与 {@code AbstractArrow} / {@code ThrowableProjectile} 的 tick 一致）</b>：
- * 每刻先 {@code pos += vel}，再 {@code vel *= 0.99}，最后 {@code vel.y -= gravity}。
- * 重力：箭 / 三叉戟 / 药水 0.05，雪球 / 鸡蛋 / 珍珠 0.03，附魔之瓶 0.07。
+ * <p>出射点也与原版一致：投掷物/箭都在
+ * {@code (shooter.getX(), shooter.getEyeY() - 0.1, shooter.getZ())} 生成（不是眼睛位置，也不前移），
+ * 方向用**原始 yaw/pitch**按 {@code shootFromRotation} 的公式重建（不用插值视线，避免半帧误差）。
  *
- * <p><b>与力量射击联动</b>：powershot 会放大玩家投掷物的初速，所以预测初速也要乘同一个倍率，
- * 否则画出来的轨迹和实际飞行不一致。
- *
- * <p>纯客户端：只读世界 + 放粒子，不发数据包、不改游戏状态。
+ * <p><b>与力量射击联动</b>：powershot 在 {@code Projectile#shootFromRotation} 处把初速乘以
+ * {@link PowershotModule#powerVelocity}，且只作用于非箭类投掷物。预测侧用同一倍率、同一作用域，
+ * 所以「开了力量射击」时画出的轨迹就是实际飞行轨迹（自检 T19 用真雪球反射调用断言该倍率）。
  */
 public final class TrajectoryRenderer {
 
-    /** 最多模拟多少刻（8 秒）；足够满蓄力弓飞完全程。 */
-    private static final int MAX_STEPS = 160;
-    /** 每几个模拟点放一颗粒子（越小越密、开销越大）。 */
-    private static final int PARTICLE_STRIDE = 4;
-    /** 路径颜色（浅蓝）。 */
-    private static final int PATH_COLOR = 0x66CCFF;
-    /** 落点颜色（红）。 */
-    private static final int IMPACT_COLOR = 0xFF3B30;
-    /**
-     * 即使姿态没变，也最多每 N tick 重算一次路径。
-     * 用来兜住「玩家站着不动、但世界被改了（放/挖方块）」的情况。
-     */
-    private static final int REFRESH_TICKS = 10;
-
-    // ── 结果缓存 ──────────────────────────────────────────────────────────
-    // 原来每 tick 无条件做 ≤160 次 level.clip + 全路径 AABB 取实体（最多 3200 次/秒），
-    // 同时每 tick 新建 160 个 Vec3。改成：姿态/弹道参数没变就复用上一帧结果，
-    // 只重放粒子（粒子每 tick 重发才看得见）。站着不动时开销≈0。
-    private static int tickCounter = 0;
-    private static long cachedSig = Long.MIN_VALUE;
-    private static int cachedAtTick = -REFRESH_TICKS;
-    private static Level cachedLevel = null;
-    private static List<Vec3> cachedPath = List.of();
-    private static int cachedEntityHit = -1;
+    /** 最多模拟多少刻（6 秒），够满蓄力弓/高倍率投掷物飞完。 */
+    private static final int MAX_TICKS = 120;
+    /** 超过这个距离就不再往后算（再远也看不清，且省开销）。 */
+    private static final double MAX_DISTANCE = 72.0D;
+    /** 相邻两颗粒子的间距（方块）。越小越连贯，但粒子数上升。 */
+    private static final double PARTICLE_SPACING = 0.45D;
+    /** 单帧最多放多少颗路径粒子（防止高倍率下刷屏）。 */
+    private static final int MAX_PATH_PARTICLES = 140;
+    /** 每隔几颗路径粒子补一颗发光粒子（END_ROD），让轨迹在暗处也看得见。 */
+    private static final int GLOW_EVERY = 7;
+    /** 落点标记的环半径。 */
+    private static final double RING_RADIUS = 0.34D;
 
     private TrajectoryRenderer() {
     }
@@ -84,7 +81,6 @@ public final class TrajectoryRenderer {
     // ───────────────────────────── 主循环 ─────────────────────────────
 
     private static void onClientTick(Minecraft mc) {
-        tickCounter++;
         if (!WlyModule.on(TrajectoryModule.ID) || mc.player == null || mc.level == null) {
             return;
         }
@@ -92,21 +88,29 @@ public final class TrajectoryRenderer {
             return; // 打开界面时不画（26.1.2 走 Minecraft.screen，26.2 走 Gui.screen()）
         }
         Player player = mc.player;
-        Shot main = shotOf(player, InteractionHand.MAIN_HAND);
-        if (main != null) {
-            render(mc, player, main);
-            return; // 主手已经在画了，不再画副手（避免重叠）
+        Shot shot = shotOf(player, InteractionHand.MAIN_HAND);
+        if (shot == null) {
+            shot = shotOf(player, InteractionHand.OFF_HAND);
         }
-        Shot off = shotOf(player, InteractionHand.OFF_HAND);
-        if (off != null) {
-            render(mc, player, off);
+        if (shot != null) {
+            draw(mc, player, shot);
         }
     }
 
-    // ───────────────────────────── 手持物 → 弹道参数 ─────────────────────────────
+    // ───────────────────────── 手持物 → 弹道参数 ─────────────────────────
 
-    /** 一次预测所需的弹道参数。 */
-    private record Shot(double speed, double gravity) {
+    /**
+     * 一次预测所需的弹道参数。
+     *
+     * @param speed     初速（已含力量射击倍率）
+     * @param gravity   每刻重力
+     * @param drag      空气阻力（0.99）
+     * @param moveFirst true=箭族（先位移再阻力再重力）；false=投掷物族（先重力再阻力再位移）
+     * @param colorFrom 轨迹起点颜色（RGB）
+     * @param colorTo   轨迹终点颜色（RGB）
+     */
+    private record Shot(double speed, double gravity, double drag, boolean moveFirst,
+                        int colorFrom, int colorTo) {
     }
 
     private static Shot shotOf(Player player, InteractionHand hand) {
@@ -128,14 +132,15 @@ public final class TrajectoryRenderer {
             if (power < 0.1F) {
                 return null;
             }
-            return new Shot(power * 3.0D, 0.05D);
+            // 原版：power * 3.0；箭族不受力量射击影响
+            return new Shot(power * 3.0D, 0.05D, 0.99D, true, 0xCFE9FF, 0x4A9BFF);
         }
 
         if (item instanceof CrossbowItem) {
             if (!CrossbowItem.isCharged(stack) || player.getProjectile(stack).isEmpty()) {
                 return null;
             }
-            return new Shot(3.15D, 0.05D);
+            return new Shot(3.15D, 0.05D, 0.99D, true, 0xD8F0FF, 0x3F8CFF);
         }
 
         if (item instanceof TridentItem) {
@@ -145,17 +150,23 @@ public final class TrajectoryRenderer {
             if (player.getTicksUsingItem() < 10) {
                 return null; // 原版三叉戟不足 10 刻不会掷出
             }
-            return new Shot(2.5D, 0.05D);
+            return new Shot(2.5D, 0.05D, 0.99D, true, 0x9BFFE0, 0x1FA37A);
         }
 
-        double speed = throwSpeed(item);
-        if (speed <= 0.0D) {
+        double base = throwSpeed(item);
+        if (base <= 0.0D) {
             return null;
         }
-        if (WlyModule.on("powershot")) {
+        // 力量射击：与 PowershotMixin 完全同口径（只作用于非箭类投掷物）
+        double speed = base;
+        if (WlyModule.on(PowershotModule.ID)) {
             speed *= Math.max(0.0D, PowershotModule.powerVelocity);
         }
-        return new Shot(speed, throwGravity(item));
+        if (speed <= 0.05D) {
+            return null; // 倍率 0 = 扔脚底，没有可画的轨迹
+        }
+        int[] colors = throwColors(item);
+        return new Shot(speed, throwGravity(item), 0.99D, false, colors[0], colors[1]);
     }
 
     private static double throwSpeed(Item item) {
@@ -178,126 +189,162 @@ public final class TrajectoryRenderer {
         if (item instanceof ExperienceBottleItem) {
             return 0.07D;
         }
-        return 0.03D;
+        return 0.03D; // 雪球 / 鸡蛋 / 末影珍珠
+    }
+
+    private static int[] throwColors(Item item) {
+        if (item instanceof EggItem) {
+            return new int[]{0xFFF4C9, 0xD9A441};
+        }
+        if (item instanceof EnderpearlItem) {
+            return new int[]{0xCFA6FF, 0x5B2E9E};
+        }
+        if (item instanceof ThrowablePotionItem) {
+            return new int[]{0xFF9BDC, 0xA81E6E};
+        }
+        if (item instanceof ExperienceBottleItem) {
+            return new int[]{0xC8FF7A, 0x3F9E33};
+        }
+        return new int[]{0xFFFFFF, 0x8FC9FF}; // 雪球
     }
 
     // ───────────────────────────── 模拟 + 渲染 ─────────────────────────────
 
-    private static void render(Minecraft mc, Player player, Shot shot) {
+    private static void draw(Minecraft mc, Player player, Shot shot) {
         Level level = mc.level;
-        if (level != cachedLevel) {           // 换世界/重进存档：缓存立刻失效
-            cachedLevel = level;
-            cachedSig = Long.MIN_VALUE;
-            cachedPath = List.of();
-            cachedEntityHit = -1;
-        }
-
-        long sig = signature(player, shot);
-        boolean stale = sig != cachedSig || tickCounter - cachedAtTick >= REFRESH_TICKS;
-        if (stale) {
-            List<Vec3> path = simulate(level, player, shot);
-            cachedPath = path;
-            cachedEntityHit = path.isEmpty() ? -1 : firstEntityHit(level, player, path);
-            cachedSig = sig;
-            cachedAtTick = tickCounter;
-        }
-
-        List<Vec3> path = cachedPath;
-        if (path.isEmpty()) {
+        List<Vec3> path = simulate(level, player, shot);
+        if (path.size() < 2) {
             return;
         }
+        int end = entityHit(level, player, path);
+        int last = end >= 0 ? end : path.size() - 1;
 
-        // 命中实体则截断路径
-        int entityHit = cachedEntityHit;
-        int end = entityHit >= 0 ? entityHit + 1 : path.size();
-
-        ParticleOptions dot = new DustParticleOptions(PATH_COLOR, 0.5F);
-        for (int i = 0; i < end; i += PARTICLE_STRIDE) {
-            Vec3 p = path.get(i);
-            level.addParticle(dot, p.x, p.y, p.z, 0.0D, 0.0D, 0.0D);
-        }
-
-        // 落点：实体命中优先，否则「路径提前结束」= 撞到了方块
-        Vec3 impact = null;
-        if (entityHit >= 0) {
-            impact = path.get(entityHit);
-        } else if (path.size() < MAX_STEPS) {
-            impact = path.get(path.size() - 1);
-        }
-        if (impact != null) {
-            ParticleOptions mark = new DustParticleOptions(IMPACT_COLOR, 0.9F);
-            level.addParticle(mark, impact.x, impact.y, impact.z, 0.0D, 0.0D, 0.0D);
-            for (int i = 0; i < 8; i++) {
-                double a = i * Math.PI / 4.0D;
-                level.addParticle(mark,
-                        impact.x + Math.cos(a) * 0.3D, impact.y, impact.z + Math.sin(a) * 0.3D,
-                        0.0D, 0.0D, 0.0D);
-            }
-        }
+        spawnPath(level, path, last, shot);
+        spawnImpact(level, path.get(last), shot);
     }
 
-    /**
-     * 弹道参数指纹：眼睛位置（0.05 精度）+ 视线方向（0.01 精度）+ 初速 + 重力。
-     * 只要这四样没变，模拟结果就完全一样，可以直接复用上一帧。
-     */
-    private static long signature(Player player, Shot shot) {
-        Vec3 e = player.getEyePosition();
-        Vec3 v = player.getViewVector(1.0F);
-        long h = 17L;
-        h = h * 31L + Math.round(e.x * 20.0D);
-        h = h * 31L + Math.round(e.y * 20.0D);
-        h = h * 31L + Math.round(e.z * 20.0D);
-        h = h * 31L + Math.round(v.x * 100.0D);
-        h = h * 31L + Math.round(v.y * 100.0D);
-        h = h * 31L + Math.round(v.z * 100.0D);
-        h = h * 31L + Double.hashCode(shot.speed());
-        h = h * 31L + Double.hashCode(shot.gravity());
-        return h;
-    }
-
-    /** 按原版弹道物理推进，返回路径点（撞到方块时提前结束）。 */
+    /** 逐刻复刻原版积分，返回每刻位置；撞方块时最后一点是命中点。 */
     private static List<Vec3> simulate(Level level, Player player, Shot shot) {
         List<Vec3> path = new ArrayList<>();
-        Vec3 pos = player.getEyePosition();
-        Vec3 vel = player.getViewVector(1.0F).scale(shot.speed());
-        for (int i = 0; i < MAX_STEPS; i++) {
+        // 原版生成点：脚部 X/Z + 眼睛 Y 再下移 0.1
+        Vec3 pos = new Vec3(player.getX(), player.getEyeY() - 0.1D, player.getZ());
+        Vec3 vel = direction(player).scale(shot.speed());
+        path.add(pos);
+
+        for (int i = 0; i < MAX_TICKS; i++) {
+            if (!shot.moveFirst()) {
+                // 投掷物族：先重力、再阻力、后位移
+                vel = new Vec3(vel.x, vel.y - shot.gravity(), vel.z).scale(shot.drag());
+            }
             Vec3 next = pos.add(vel);
             BlockHitResult hit = level.clip(new ClipContext(pos, next,
                     ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
             if (hit.getType() != HitResult.Type.MISS) {
                 path.add(hit.getLocation());
-                return path; // 撞到方块：路径到此为止
+                return path;
             }
             path.add(next);
-            vel = vel.scale(0.99D);
-            vel = vel.add(0.0D, -shot.gravity(), 0.0D);
             pos = next;
+            if (shot.moveFirst()) {
+                // 箭族：先位移、再阻力、后重力
+                Vec3 v = vel.scale(shot.drag());
+                vel = new Vec3(v.x, v.y - shot.gravity(), v.z);
+            }
+            if (pos.distanceToSqr(path.get(0)) > MAX_DISTANCE * MAX_DISTANCE) {
+                break;
+            }
+            if (pos.y < level.getMinY() - 8) {
+                break;
+            }
         }
         return path;
     }
 
-    /** 沿路径找最早的实体命中段序号；没有则返回 -1。 */
-    private static int firstEntityHit(Level level, Player player, List<Vec3> path) {
+    /**
+     * 原版 {@code Projectile#shootFromRotation} 的方向公式（用原始 yaw/pitch，不用插值视线）：
+     * <code>x = -sin(yaw)·cos(pitch)，y = -sin(pitch)，z = cos(yaw)·cos(pitch)</code>，再归一化。
+     */
+    private static Vec3 direction(Player player) {
+        float yaw = player.getYRot();
+        float pitch = player.getXRot();
+        double yawRad = Math.toRadians(yaw);
+        double pitchRad = Math.toRadians(pitch);
+        double x = -Math.sin(yawRad) * Math.cos(pitchRad);
+        double y = -Math.sin(pitchRad);
+        double z = Math.cos(yawRad) * Math.cos(pitchRad);
+        return new Vec3(x, y, z).normalize();
+    }
+
+    /** 沿路径按固定间距放粒子（起点→终点颜色渐变），并每隔几颗补发光粒子。 */
+    private static void spawnPath(Level level, List<Vec3> path, int last, Shot shot) {
+        ParticleOptions dust = new DustColorTransitionOptions(shot.colorFrom(), shot.colorTo(), 0.62F);
+        double travelled = 0.0D;
+        double nextAt = 0.0D;
+        int emitted = 0;
+        Vec3 prev = path.get(0);
+        for (int i = 1; i <= last && emitted < MAX_PATH_PARTICLES; i++) {
+            Vec3 cur = path.get(i);
+            double seg = prev.distanceTo(cur);
+            while (seg > 1.0E-9D && nextAt <= travelled + seg && emitted < MAX_PATH_PARTICLES) {
+                double t = (nextAt - travelled) / seg;
+                Vec3 p = prev.lerp(cur, Math.max(0.0D, Math.min(1.0D, t)));
+                level.addParticle(dust, p.x, p.y, p.z, 0.0D, 0.0D, 0.0D);
+                if (emitted % GLOW_EVERY == 0) {
+                    level.addParticle(ParticleTypes.END_ROD, p.x, p.y, p.z, 0.0D, 0.0D, 0.0D);
+                }
+                emitted++;
+                nextAt += PARTICLE_SPACING;
+            }
+            travelled += seg;
+            prev = cur;
+        }
+    }
+
+    /** 落点标记：一圈尘 + 一撮暴击星 + 一根短竖线，远近都看得清。 */
+    private static void spawnImpact(Level level, Vec3 p, Shot shot) {
+        ParticleOptions ring = new DustColorTransitionOptions(shot.colorTo(), 0xFF3B30, 0.85F);
+        for (int i = 0; i < 12; i++) {
+            double a = i * Math.PI / 6.0D;
+            level.addParticle(ring,
+                    p.x + Math.cos(a) * RING_RADIUS, p.y + 0.05D, p.z + Math.sin(a) * RING_RADIUS,
+                    0.0D, 0.0D, 0.0D);
+        }
+        for (int i = 0; i < 8; i++) {
+            level.addParticle(ParticleTypes.CRIT, p.x, p.y + 0.1D, p.z,
+                    (level.getRandom().nextDouble() - 0.5D) * 0.4D,
+                    level.getRandom().nextDouble() * 0.3D,
+                    (level.getRandom().nextDouble() - 0.5D) * 0.4D);
+        }
+        for (int i = 1; i <= 3; i++) {
+            level.addParticle(ring, p.x, p.y + i * 0.22D, p.z, 0.0D, 0.0D, 0.0D);
+        }
+    }
+
+    /**
+     * 沿路径找最早的实体命中段序号；没有则返回 -1。
+     * 命中盒按原版投射物尺寸（约 0.25 半径）膨胀，避免「明明能打到却画穿过去」。
+     */
+    private static int entityHit(Level level, Player player, List<Vec3> path) {
         AABB box = boxOf(path).inflate(1.5D);
         List<Entity> candidates = level.getEntities(player, box,
                 e -> e instanceof LivingEntity && e != player && e.isAlive());
         if (candidates.isEmpty()) {
             return -1;
         }
-        int bestSegment = -1;
+        int best = -1;
         for (Entity e : candidates) {
             AABB eb = e.getBoundingBox().inflate(0.3D);
             for (int i = 1; i < path.size(); i++) {
-                if (bestSegment >= 0 && i >= bestSegment) {
-                    break; // 已经找到更早的命中
+                if (best >= 0 && i >= best) {
+                    break;
                 }
                 if (eb.clip(path.get(i - 1), path.get(i)).isPresent()) {
-                    bestSegment = i;
+                    best = i;
                     break;
                 }
             }
         }
-        return bestSegment;
+        return best;
     }
 
     private static AABB boxOf(List<Vec3> path) {

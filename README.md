@@ -91,7 +91,7 @@ Install [Fabric Loader](https://fabricmc.net/) and [Fabric API](https://modrinth
 | 测距尺 Ruler | 精确测量两点距离。Measure distances precisely. |
 | 去实验警告 No Exp Warn | 创建世界与**进入已有世界**都不再弹实验性/自定义世界警告。Skips the experimental / custom-world warnings when creating **and opening** a world. |
 | 村民可见标记 Visible Traders | 显示村民全部交易/职业。Show all villager trades. |
-| 连接纹理 CTM | 玻璃无缝连接纹理。注意：这是**安装即生效的静态贴图覆盖**，配置页的开关只作标记、无法在游戏内撤销；要恢复原版玻璃请在「资源包」界面处理（改完按 F3+T 重载）。Seamless glass textures. Note: a static texture override that applies as soon as the mod is installed — the config toggle is a marker only; use the Resource Packs screen (then F3+T) to restore vanilla glass. |
+| 连接纹理 CTM | 玻璃无缝连接纹理（**常开，配置页无开关**）。这是安装即生效的静态贴图覆盖，运行时开关不可能撤销；要恢复原版玻璃请在「资源包」界面处理（改完按 F3+T 重载）。Seamless glass textures (**always on — no config toggle**): a static texture override that applies as soon as the mod is installed; use the Resource Packs screen (then F3+T) to restore vanilla glass. |
 
 ### 🐾 生物与探索 / Mobs & Exploration
 
@@ -148,6 +148,18 @@ python tools/mixin_audit.py
 ---
 
 ## 📜 版本历史 / Changelog
+
+### v1.2.10（2026）
+
+- 🎯 **弹道预测重做**（反馈：粒子效果差、预测不准、不与力量射击配合）：
+  - **物理逐刻复刻原版积分顺序**：投掷物族 `v.y -= g → v *= 0.99 → 位移`（26.2 字节码：`tick()` 先 `applyGravity` 再 `applyInertia`），箭族 `位移 → v *= 0.99 → v.y -= 0.05`。之前统一按「先位移后重力」，两种族必有一种偏。
+  - **出射点与方向**：改用原版生成点 `(x, eyeY − 0.1, z)`（不是眼睛位置、也不前移），方向用**原始 yaw/pitch** 按 `shootFromRotation` 的公式重建 —— 不再用插值视线，消除半帧误差。
+  - **与力量射击同口径联动**：初速 = 原版初速 × `powerVelocity`，箭/三叉戟不乘（与 `PowershotMixin` 的作用域逐字一致），所以「开了力量射击」画出来的就是实际飞行线。
+  - **粒子重做**：`DustColorTransitionOptions` 渐变尘按 **0.45 格间距**铺满全程（原来每 4 刻一颗、间距 6 格），每 7 颗补一颗 `END_ROD` 让暗处也看得见；落点画 12 点环 + 暴击星 + 短竖线。
+  - **不再有残影**：去掉「姿态没变就复用旧路径 + 10 刻才刷新」的缓存，改为每 tick 重算（≤120 刻、72 格封顶），走动/转身时轨迹跟手。
+- 🔧 **`ctm`（玻璃去边框）不再显示开关**：它的实现是 jar 内 `assets/minecraft/textures/block/glass*.png` 静态贴图覆盖，运行时开关**不可能**生效 —— 给开关只会让人以为「点了没反应」。现在配置界面隐藏该开关（`WlyModule.hideToggle()`），文档注明常开。
+- 🧪 自检新增 **T19**：用 `FakePlayer` 真调 `Snowball#shootFromRotation`，断言「开/关力量射击的速度比值 == `powerVelocity`」（实测 1.500 → 3.750，比值 2.500）。这是「投掷物初速到底有没有生效」的机器判据，也保证预测侧用的倍率与实际一致。
+- 自检 **19 PASS / 0 FAIL**。
 
 ### v1.2.9（2026）
 

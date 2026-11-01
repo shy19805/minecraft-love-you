@@ -473,6 +473,52 @@ public final class SelfTest {
             out.add("FAIL T18 启用状态缓存异常：" + t);
         }
 
+        // T19 力量射击初速倍率必须真的写进投掷物
+        //     （弹道预测按同一倍率画轨迹；这里用真雪球反射调用 shootFromRotation 成对断言，
+        //      倍率没生效时预测必然与实际飞行不符 —— 也就是「轨迹不准」的真因之一）
+        try {
+            var lvl = server.overworld();
+            boolean wasOn = com.minecraftloveyou.core.WlyModule.on("powershot");
+            double pvExpected = com.minecraftloveyou.module.powershot.PowershotModule.powerVelocity;
+
+            // 必须有真实 shooter：26.2 的 shootFromRotation 会读 shooter.getKnownMovement()，
+            // 传 null 直接 NPE（这也是原版「投射物继承射手速度」的实现点）。
+            var shooter = net.fabricmc.fabric.api.entity.FakePlayer.get(lvl);
+            shooter.setPos(0.5D, 81.0D, 0.5D);
+
+            com.minecraftloveyou.config.WlyConfigData.put("powershot", true);
+            var boosted = new net.minecraft.world.entity.projectile.throwableitemprojectile.Snowball(
+                    lvl, 0.5D, 81.0D, 0.5D, net.minecraft.world.item.ItemStack.EMPTY);
+            boosted.setOwner(shooter); // 原版构造器会 setOwner；这里手工建实体必须补上，否则作用域判定为「无主」
+            boosted.shootFromRotation(shooter, 0.0F, 0.0F, 0.0F, 1.5F, 0.0F);
+            double vOn = boosted.getDeltaMovement().length();
+
+            com.minecraftloveyou.config.WlyConfigData.put("powershot", false);
+            var plain = new net.minecraft.world.entity.projectile.throwableitemprojectile.Snowball(
+                    lvl, 0.5D, 81.0D, 0.5D, net.minecraft.world.item.ItemStack.EMPTY);
+            plain.setOwner(shooter);
+            plain.shootFromRotation(shooter, 0.0F, 0.0F, 0.0F, 1.5F, 0.0F);
+            double vOff = plain.getDeltaMovement().length();
+
+            com.minecraftloveyou.config.WlyConfigData.put("powershot", wasOn);
+
+            double ratio = vOff > 1.0E-6D ? vOn / vOff : -1.0D;
+            if (pvExpected > 0.0D && Math.abs(ratio - pvExpected) < 0.02D) {
+                pass++;
+                out.add("PASS T19 力量射击初速倍率（关=" + String.format("%.3f", vOff)
+                        + " 开=" + String.format("%.3f", vOn)
+                        + " 比值=" + String.format("%.3f", ratio) + "，期望 " + pvExpected + "）");
+            } else {
+                fail++;
+                out.add("FAIL T19 初速倍率未生效（关=" + String.format("%.3f", vOff)
+                        + " 开=" + String.format("%.3f", vOn)
+                        + " 比值=" + String.format("%.3f", ratio) + "，期望 " + pvExpected + "）");
+            }
+        } catch (Throwable t) {
+            fail++;
+            out.add("FAIL T19 初速倍率测试异常：" + t);
+        }
+
         WorldLovesYouMod.LOGGER.info("[我的世界爱你][自检] ===== 自检结果 {} PASS / {} FAIL =====", pass, fail);
         for (String line : out) {
             WorldLovesYouMod.LOGGER.info("[我的世界爱你][自检] " + line);

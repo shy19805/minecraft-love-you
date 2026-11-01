@@ -33,6 +33,15 @@ public class CtmModule implements WlyModule {
         return true; // 纯客户端贴图覆盖，专服无意义
     }
 
+    /**
+     * 配置界面不显示开关：贴图覆盖是静态资源，运行时开关不会改变任何东西
+     * （见 {@link com.minecraftloveyou.core.WlyModule#hideToggle()}）。
+     */
+    @Override
+    public boolean hideToggle() {
+        return true;
+    }
+
     @Override
     public void init(ModuleContext ctx) {
         // ⚠ 本模块的贴图覆盖（assets/minecraft/textures/block/glass*.png）是**静态资源**：

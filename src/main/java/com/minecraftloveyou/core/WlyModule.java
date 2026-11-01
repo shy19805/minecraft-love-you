@@ -25,6 +25,17 @@ public interface WlyModule {
         return true;
     }
 
+    /**
+     * 是否在配置界面隐藏开关。
+     *
+     * <p>用于「开关无法在运行时生效」的功能：典型是 {@code ctm} —— 它的实现是 jar 内的
+     * {@code assets/minecraft/textures/block/glass*.png} 静态贴图覆盖，只要 jar 在就生效，
+     * 给个开关只会让玩家以为「点了没反应」。这类模块在 GUI 里不出现，文档里写清常开。
+     */
+    default boolean hideToggle() {
+        return false;
+    }
+
     /** 服务端/双端初始化。 */
     void init(ModuleContext ctx);
 

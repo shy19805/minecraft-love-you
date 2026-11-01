@@ -91,6 +91,9 @@ public final class WlyConfig {
         for (var entry : grouped.entrySet()) {
             ConfigCategory cat = builder.getOrCreateCategory(Component.translatable(entry.getKey()));
             for (var m : entry.getValue()) {
+                if (m.hideToggle()) {
+                    continue; // 静态资源类功能（如 ctm）：开关无效，不显示
+                }
                 String id = m.id();
                 boolean cur = WlyConfigData.isStored(id)
                         ? WlyConfigData.moduleEnabled(id)
